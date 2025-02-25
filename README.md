@@ -5,6 +5,7 @@ Here is the server setup / hardening process for Ubuntu:
 After first login with the root user, first things first, lets make sure everything is updated:
 
 `apt update`
+
 `apt upgrade`
 
 Reboot if necessary (eg. by using the `reboot` command).
@@ -61,6 +62,44 @@ Then let's download the torrented archive (`-w .` means output folder is this fo
 
 `transmission-cli ./www.cdc.gov_en_all_novid_2025-01_archive.torrent -w .`
 
-Wait for the download to finish. Among the downloaded files, there is this huge archive with .zim extension.
+Wait for the download to finish. Among the downloaded files, there is this huge archive with .zim extension. Move that file with the .zim extension to this folder (where zim_converter.py) lives.
+
+`mv path/to/www.cdc.gov_en_all_novid_2025-01.zim path/to/here` (modify the paths before running this)
+
+That is all we need regarding data. Now let's create a virtual python environment:
+
+`python -m venv venv`
+
+...and then activate the environment:
+
+`source ./venv/bin/activate`
+
+Now there should be a (venv) prefix at the beginning of our terminal prompt.
+
+We need to install the requirements:
+
+`pip install -r requirements.txt`
+
+If all goes right, we can now convert our .zim file to a LevelDB database (will be stored under `./cdc_database`)
+
+`python ./zim_converter.py`
+
+This will take some time, progress will be printed on screen. There might be some additional printing in between progress for redirects and errors. You will get a list of all paths that reported an error at the end. For the cdc .zim archive we are using for this project, there is about 30 paths (among ~380000) that are corrupted in the .zim file, that is not a big deal.
+
+If the process ends before printing "done" maybe the server does not have enough RAM. In that case you will need to enable swap in linux to compensate which I won't go into here but mentioning it here as a pointer.
+
+Also beware that the .zim file is around 100GB. The generated LevelDB database will be around 95GB. So to do this conversion in server, you need about 200GB free space for this to succeed.
+
+After the conversion is done, you may delete the .zim file to save space since everything is included in the LevelDB database residing in `./cdc_database`
+
+`rm ./www.cdc.gov_en_all_novid_2025-01.zim`
+
+At this point, serving the mirror is possible by just running:
+
+`python ./serve.py`
+
+This will serve the page at port 9090. Since we don't yet have a firewall setup, the website should be accessible at `http://server ip address:9090/`
+
+Next we need setup things in a way that is robust for serving to the world.
 
 ...to be continued

@@ -1,0 +1,4 @@
+libzim
+plyvel
+flask
+waitress

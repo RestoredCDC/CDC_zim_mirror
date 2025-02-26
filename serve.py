@@ -2,6 +2,7 @@ from urllib import parse
 from flask import Flask, Response, redirect
 from waitress import serve
 import plyvel
+import re
 
 # this is the path of the LevelDB database we converted from .zim using zim_converter.py
 db = plyvel.DB('./cdc_database')
@@ -15,6 +16,15 @@ app = Flask(__name__)
 # serving to localhost interfaces at port 9090
 hostName = "0.0.0.0"
 serverPort = 9090
+
+# we will use the following regex to add a disclaimer after the body tag 
+body_tag_regex = re.compile(r'(<body\b[^>]*>)', re.IGNORECASE)
+# this disclaimer will be at the top of every page.
+DISCLAIMER_HTML = '''
+<div style="background:yellow; padding:10px; text-align:center;">
+  Disclaimer: This is a demo disclaimer.
+</div>
+'''
 
 # due to the way the database routing and relative paths within it work
 # we need the "root" of the site to be /www.cdc.gov/ so if our domain is
@@ -52,6 +62,11 @@ def lookup(subpath):
     # target path.
     if mimetype == "=redirect=":
       return redirect(f'/{content.decode("utf-8")}')
+    
+    # here we add the disclaimer with a regex if the request is for a html file.
+    if mimetype.startswith("text/html"):
+      content = content.decode("utf-8")
+      content = body_tag_regex.sub(r'\1' + DISCLAIMER_HTML, content, count=1)
 
     # if the path was not a redirect, serve the content directly along with its mimetype
     # the browser will know what to do with it.

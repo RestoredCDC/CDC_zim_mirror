@@ -62,13 +62,41 @@ Then let's download the torrented archive (`-w .` means output folder is this fo
 
 `transmission-cli ./www.cdc.gov_en_all_novid_2025-01_archive.torrent -w .`
 
-Wait for the download to finish. Among the downloaded files, there is this huge archive with .zim extension. Move that file with the .zim extension to this folder (where zim_converter.py) lives.
+Wait for the download to finish. Among the downloaded files, there is this huge archive with .zim extension which we will need later. 
 
-`mv path/to/www.cdc.gov_en_all_novid_2025-01.zim path/to/here` (modify the paths before running this)
+We also need to be able to pull the private github repo. For that, we need to setup a deploy key in github. First let's create an ssh key:
+
+`ssh-keygen -t ed25519 -C "cdc-mirror-github-deploy-key"`
+
+We don't need a password, leave blank when prompted. Then we need to get the public key by running:
+
+`cat ~/.ssh/cdc-mirror-github-deploy-key.pub`
+
+The public key will be printed. Copy this public key, then go to the repo in github.com, under Settings -> Deploy Keys add this public key.
+
+To be able to use this key on the system create a file under `config` under `~/.ssh/` with the contents:
+
+```
+Host github.com
+	IdentityFile ~/.ssh/cdc-mirror-github-deploy-key
+	AddKeysToAgent yes
+```
+
+Now we should be able to pull the repository:
+
+`git clone git@github.com:earslap/CDC_zim_mirror.git` (replace earslap username if necessary)
+
+Now move that file with the .zim extension to the repo folder (where zim_converter.py) lives.
+
+`mv www.cdc.gov_en_all_novid_2025-01/www.cdc.gov_en_all_novid_2025-01.zim ./CDC_zim_mirror/` (modify the paths before running this)
 
 That is all we need regarding data. Now let's create a virtual python environment:
 
-`python -m venv venv`
+`cd CDC_zim_mirror`
+
+`sudo apt install python3.12-venv` (might be needed first depending on system)
+
+`python3 -m venv venv`
 
 ...and then activate the environment:
 
@@ -101,5 +129,9 @@ At this point, serving the mirror is possible by just running:
 This will serve the page at port 9090. Since we don't yet have a firewall setup, the website should be accessible at `http://server ip address:9090/`
 
 Next we need setup things in a way that is robust for serving to the world.
+
+#### Configuring server settings
+
+The `serve.py` file (which serves the entire website) is very short, simple, and well commented. You may change the value of the `serverPort` variable at the top to make the script serve from a different port. You can also change the HTLM string inside the `DISCLAIMER_HTML` variable to change the disclaimer that is injected in each page. This snippet is inserted directly after the `body` tag of the HTML in each page.
 
 ...to be continued

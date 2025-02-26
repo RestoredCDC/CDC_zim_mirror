@@ -46,11 +46,11 @@ def home():
 
 @app.route('/<path:subpath>')
 def lookup(subpath):
-  # capture the path and fix its quoted characters
-  full_path = parse.unquote(subpath)
-  print(f"Request for: {full_path}")
 
   try:
+    # capture the path and fix its quoted characters
+    full_path = parse.unquote(subpath)
+    print(f"Request for: {full_path}")
     # convert the path to bytes and get the content from the database
     content = content_db.get(bytes(full_path, "UTF-8"))
     # convert the path to bytes and get the content type from the database and decode it to a string

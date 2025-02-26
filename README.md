@@ -112,7 +112,7 @@ If all goes right, we can now convert our .zim file to a LevelDB database (will 
 
 `python ./zim_converter.py`
 
-This will take some time, progress will be printed on screen. There might be some additional printing in between progress for redirects and errors. You will get a list of all paths that reported an error at the end. For the cdc .zim archive we are using for this project, there is about 30 paths (among ~380000) that are corrupted in the .zim file, that is not a big deal.
+This will take some time, progress will be printed on screen. There might be some additional printing in between progress for redirects and errors. You will get a list of all paths that reported an error at the end. The listed `['Counter', 'Creator', 'Date', 'Description', 'Illustration_48x48@1', 'Language', 'Name', 'Publisher', 'Scraper', 'Source', 'Tags', 'Title', 'X-ContentDate', 'mainPage', 'fulltext/xapian', 'listing/titleOrdered/v0', 'listing/titleOrdered/v1', 'title/xapian']` paths as error at the end are not important for our putpose.
 
 If the process ends before printing "done" maybe the server does not have enough RAM. In that case you will need to enable swap in linux to compensate which I won't go into here but mentioning it here as a pointer.
 
@@ -128,7 +128,15 @@ At this point, serving the mirror is possible by just running:
 
 This will serve the page at port 9090. Since we don't yet have a firewall setup, the website should be accessible at `http://server ip address:9090/`
 
-Next we need setup things in a way that is robust for serving to the world.
+At this stage, if you close your ssh session, since the process is tied to the session the server will terminate. If you want the server to keep running after you terminate the ssh session, run it like the following:
+
+`nohup python ./serve.py > /dev/null 2>&1 &`
+
+(`> /dev/null 2>&1 &` part means we are ignoring all console output, sending them to the blackhole that is `/dev/null` - when you want to store them in a file, change the `/dev/null/` path.)
+
+When you login later, if you want to stop the server you can use `sudo pkill -f serve.py` in a pinch.
+
+Next we need setup things in a way that is robust for serving to the world. 
 
 #### Configuring server settings
 

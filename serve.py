@@ -50,7 +50,8 @@ def lookup(subpath):
   try:
     # capture the path and fix its quoted characters
     full_path = parse.unquote(subpath)
-    print(f"Request for: {full_path}")
+    # print(f"Request for: {full_path}")
+
     # convert the path to bytes and get the content from the database
     content = content_db.get(bytes(full_path, "UTF-8"))
     # convert the path to bytes and get the content type from the database and decode it to a string
@@ -73,9 +74,10 @@ def lookup(subpath):
     return Response(content, mimetype=mimetype)
   except Exception as e:
     # if anything is wrong, just send a 404
-    print(f"Error retrieving {full_path}: {e}")
+    # print(f"Error retrieving {full_path}: {e}")
     return Response("404 Not Found", status=404, mimetype="text/plain")
 
 
 if __name__ == '__main__':
+  print(f"Starting cdcmirror server process at port {serverPort}")
   serve(app, host=hostName, port=serverPort)

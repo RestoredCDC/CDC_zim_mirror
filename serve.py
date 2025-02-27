@@ -19,6 +19,9 @@ serverPort = 9090
 
 # we will use the following regex to add a disclaimer after the body tag 
 body_tag_regex = re.compile(r'(<body\b[^>]*>)', re.IGNORECASE)
+# this will replace the given text, escape characters properly for the regex
+official_note_escaped = re.escape("An official website of the United States government")
+
 # this disclaimer will be at the top of every page.
 DISCLAIMER_HTML = '''
 <div style="background:yellow; padding:10px; text-align:center;">
@@ -64,10 +67,12 @@ def lookup(subpath):
     if mimetype == "=redirect=":
       return redirect(f'/{content.decode("utf-8")}')
     
-    # here we add the disclaimer with a regex if the request is for a html file.
     if mimetype.startswith("text/html"):
       content = content.decode("utf-8")
+      # here we add the disclaimer with a regex if the request is for a html file.
       content = body_tag_regex.sub(r'\1' + DISCLAIMER_HTML, content, count=1)
+      # and replace the official notice
+      content = re.sub(official_note_escaped, "", content, count=1)
 
     # if the path was not a redirect, serve the content directly along with its mimetype
     # the browser will know what to do with it.

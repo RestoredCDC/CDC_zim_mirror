@@ -86,7 +86,7 @@ Now we should be able to pull the repository:
 
 `git clone git@github.com:earslap/CDC_zim_mirror.git` (replace earslap username if necessary)
 
-Now move that file with the .zim extension to the repo folder (where zim_converter.py) lives.
+Now move that file with the .zim extension to the repo folder (where zim_converter.py lives).
 
 `mv www.cdc.gov_en_all_novid_2025-01/www.cdc.gov_en_all_novid_2025-01.zim ./CDC_zim_mirror/` (modify the paths before running this)
 
@@ -112,7 +112,7 @@ If all goes right, we can now convert our .zim file to a LevelDB database (will 
 
 `python ./zim_converter.py`
 
-This will take some time, progress will be printed on screen. There might be some additional printing in between progress for redirects and errors. You will get a list of all paths that reported an error at the end. The listed `['Counter', 'Creator', 'Date', 'Description', 'Illustration_48x48@1', 'Language', 'Name', 'Publisher', 'Scraper', 'Source', 'Tags', 'Title', 'X-ContentDate', 'mainPage', 'fulltext/xapian', 'listing/titleOrdered/v0', 'listing/titleOrdered/v1', 'title/xapian']` paths as error at the end are not important for our putpose.
+This will take some time, progress will be printed on screen. There might be some additional printing in between progress for redirects and errors. You will get a list of all paths that reported an error at the end. The listed `['Counter', 'Creator', 'Date', 'Description', 'Illustration_48x48@1', 'Language', 'Name', 'Publisher', 'Scraper', 'Source', 'Tags', 'Title', 'X-ContentDate', 'mainPage', 'fulltext/xapian', 'listing/titleOrdered/v0', 'listing/titleOrdered/v1', 'title/xapian']` paths as errors at the end are not important for our purposes.
 
 If the process ends before printing "done" maybe the server does not have enough RAM. In that case you will need to enable swap in linux to compensate which I won't go into here but mentioning it here as a pointer.
 
@@ -140,6 +140,6 @@ Next we need setup things in a way that is robust for serving to the world.
 
 #### Configuring server settings
 
-The `serve.py` file (which serves the entire website) is very short, simple, and well commented. You may change the value of the `serverPort` variable at the top to make the script serve from a different port. You can also change the HTLM string inside the `DISCLAIMER_HTML` variable to change the disclaimer that is injected in each page. This snippet is inserted directly after the `body` tag of the HTML in each page.
+The `serve.py` file (which serves the entire website) is very short, simple, and well commented. You may change the value of the `serverPort` variable at the top to make the script serve from a different port. You can also change the HTML string inside the `DISCLAIMER_HTML` variable to change the disclaimer that is injected in each page. This snippet is inserted directly after the `body` tag (right after it is opened) of the HTML in each page.
 
 ...to be continued

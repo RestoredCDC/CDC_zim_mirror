@@ -74,7 +74,7 @@ We don't need a password, leave blank when prompted. Then we need to get the pub
 
 The public key will be printed. Copy this public key, then go to the repo in github.com, under Settings -> Deploy Keys add this public key.
 
-To be able to use this key on the system create a file under `config` under `~/.ssh/` with the contents:
+To be able to use this key on the system create a file named `config` under `~/.ssh/` with the contents:
 
 ```
 Host github.com

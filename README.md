@@ -136,7 +136,48 @@ At this stage, if you close your ssh session, since the process is tied to the s
 
 When you login later, if you want to stop the server you can use `sudo pkill -f serve.py` in a pinch.
 
-Next we need setup things in a way that is robust for serving to the world. 
+Next we need setup things in a way that is robust for serving to the world.
+
+## Setting up auto-start and auto-restart
+
+Once the server is confirmed to be running properly as described above, we should set things up in a way so that the process starts at each boot, and restarts automatically if it crashes.
+
+A common way to do this in Ubuntu (and other related distros) is using the `systemd` service.
+
+Let's create a service file that will achieve what we want.
+
+Create the file `/etc/systemd/system/cdcmirror.service` with the following contents:
+
+```
+[Unit]
+Description=CDC Mirror Server Process
+After=network.target
+
+[Service]
+User=server_user
+WorkingDirectory=/home/server_user/CDC_zim_mirror
+Environment="PATH=/home/server_user/CDC_zim_mirror/venv/bin"
+ExecStart=/home/server_user/CDC_zim_mirror/venv/bin/python serve.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+This will run our serve.py process in the right python environment under `server_user` account. Change the `server_user` to the name of the user dedicated to running this process (create the user if necessary) and also the `WorkingDirectory`, `Environment` and `ExecStart` paths if your paths differ.
+
+After creating this file, you need to reload the systemd daemon:
+
+`sudo systemctl daemon-reload`
+
+To start the service run:
+
+`sudo systemctl start cdcmirror.service`
+
+And to make it run automatically on startup (or after a reboot):
+
+`sudo systemctl enable cdcmirror.service`
 
 #### Configuring server settings
 

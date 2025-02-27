@@ -148,7 +148,7 @@ A common way to do this in Ubuntu (and other related distros) is using the `syst
 
 Let's create a service file that will achieve what we want.
 
-Create the file `/etc/systemd/system/cdcmirror.service` with the following contents:
+Create the file `/etc/systemd/system/cdcmirror.service` (with `sudo` privileges) with the following contents:
 
 ```
 [Unit]

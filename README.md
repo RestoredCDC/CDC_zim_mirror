@@ -181,6 +181,14 @@ And to make it run automatically on startup (or after a reboot):
 
 `sudo systemctl enable cdcmirror.service`
 
+Restart the server by:
+
+`sudo systemctl restart cdcmirror.service`
+
+### Pulling in changes with git
+
+Login as `server_user` or whichever user you use for deployment. Go to the repo folder where the server is hosted from and do a `git pull`. Then restart the server using `sudo systemctl restart cdcmirror.service` command described above.
+
 #### Configuring server settings
 
 The `serve.py` file (which serves the entire website) is very short, simple, and well commented. You may change the value of the `serverPort` variable at the top to make the script serve from a different port. You can also change the HTML string inside the `DISCLAIMER_HTML` variable to change the disclaimer that is injected in each page. This snippet is inserted directly after the `body` tag (right after it is opened) of the HTML in each page.

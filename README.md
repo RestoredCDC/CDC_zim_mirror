@@ -108,6 +108,8 @@ We need to install the requirements:
 
 `pip install -r requirements.txt`
 
+(if you are on Windows for testing, you might need to change `plyvel` package in the `requirements.txt` file to `plyvel-ci`)
+
 If all goes right, we can now convert our .zim file to a LevelDB database (will be stored under `./cdc_database`)
 
 `python ./zim_converter.py`

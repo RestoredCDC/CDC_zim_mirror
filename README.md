@@ -99,7 +99,7 @@ cd CDC_zim_mirror
 2. Install using apt the python virtual environment package (might be needed first depending on system) and create the environment.
 ```
 sudo apt install python3.12-venv
-python3 -m venv venv`
+python3 -m venv venv
 ```
 3. Activate the environment:
 ```

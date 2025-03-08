@@ -148,7 +148,7 @@ nohup python ./serve.py > /dev/null 2>&1 &
 
 Next we need setup things in a way that is robust for serving to the world.
 
-## Setting up auto-start and auto-restart
+# Setting up auto-start and auto-restart
 
 Once the server is confirmed to be running properly as described above, we should set things up in a way so that the process starts at each boot, and restarts automatically if it crashes.
 
@@ -193,7 +193,7 @@ sudo systemctl enable cdcmirror.service
 ```
 sudo systemctl restart cdcmirror.service
 ```
-### Pulling in changes with git
+# Pulling in changes with git
 
 Login as `user` or whichever user you use for deployment. Go to the repo folder where the server is hosted from and do a `git pull`. Then restart the server using `sudo systemctl restart cdcmirror.service` command described above.
 

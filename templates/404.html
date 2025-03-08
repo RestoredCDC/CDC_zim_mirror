@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        h1 { color: #ff4c4c; }
+        p { font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h1>404 - Page Not Found</h1>
+    <p>Oops! The page you are looking for doesn't exist.</p>
+    {% if error %}
+    <p>Error Details: {{ error }}</p>
+    {% endif %}
+    <p>Report this error to our <a href="https://bugs.restoredcdc.org">bug tracker</a>. </p>
+    <a href="/">Go Home</a>
+</body>
+</html>
+

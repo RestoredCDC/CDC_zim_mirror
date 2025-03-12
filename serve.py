@@ -38,7 +38,7 @@ DISCLAIMER_HTML = '''
   </div>
   <div style="display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;text-align: center; font-size: 0.8em">
     <a href="https://aboutus.restoredcdc.org/mission" target="_blank" style="padding: 8px 15px; font-weight: bold; background: #2A1E5C; color: white; text-decoration: none; border-radius: 5px;">About RestoredCDC.org</a>
-    <a href="https://bugs.restoredcdc.org" style="padding: 8px 15px; font-weight: bold; background: #2A1E5C; color: white; text-decoration:none; border-radius: 5px" target="_blank">Report a Problem</a>
+    <a href="https://github.com/RestoredCDC/CDC_zim_mirror/issues/new/choose" style="padding: 8px 15px; font-weight: bold; background: #2A1E5C; color: white; text-decoration:none; border-radius: 5px" target="_blank">Report a Problem</a>
   </div>
 </div>
 '''

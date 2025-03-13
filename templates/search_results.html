@@ -1,0 +1,183 @@
+<!--
+  search_results.html
+  -------------------
+  Renders search results from our Whoosh-based search.
+
+  Variables passed from Flask:
+    - query: the user's (potentially trimmed) search query
+    - results: a list of result dictionaries with {title, path, snippet}
+    - total: total number of hits
+    - page: current page number
+    - did_you_mean: spelling suggestion if available
+    - sortby: "score" or "title" (the sorting mechanism)
+    - disclaimer: HTML snippet to display at the top of the page
+    - notice: optional message if the query was truncated
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Search Results for "{{ query }}" | RestoredCDC</title>
+  <style>
+    /* Basic styling for the search results page */
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #005ea2;
+      color: #fff;
+      padding: 0.75rem 0;
+    }
+    .header-content {
+      max-width: 80%;
+      width: 95%;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+    }
+    main {
+      font-size: 18px;
+      max-width: 80%;
+      width: 95%;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .header-disclaimer { 
+      margin-bottom: 0; 
+    }
+    .nav-buttons {
+      margin: 1rem 0;
+    }
+    .nav-buttons a {
+      display: inline-block;
+      margin-right: 1em;
+      padding: 0.5em 1em;
+      background-color: #2A1E5C;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .search-form input[type="text"] {
+      width: 300px;
+    }
+    .pager a {
+      margin-right: 1em;
+    }
+    .result-item {
+      margin-bottom: 1em;
+    }
+    .result-item a {
+      font-weight: bold;
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .result-snippet {
+      font-size: 0.9em;
+      color: #444;
+      line-height: 1.4;
+    }
+    .result-snippet br {
+      display: block;
+      content: "";
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Insert the disclaimer at the top -->
+<div class="header-disclaimer">
+  {{ disclaimer|safe }}
+</div>
+
+<header>
+  <div class="header-content">
+    <h1>RestoredCDC.org Search</h1>
+    <div class="nav-buttons">
+      <!-- Link back to the main site -->
+      <a href="/www.cdc.gov/">&#8592; Back to RestoredCDC.org</a>
+      <!-- Forward user to search restoredcdc.org using Google search -->
+      <a href="https://www.google.com/search?q=site:restoredcdc.org+{{ query|urlencode }}" target="_blank">Search with Google</a>
+      <!-- Forward users search to cdc.gov -->
+      <a href="https://search.cdc.gov/search/?query={{ query|urlencode }}" target="_blank">
+        Search on CDC.gov
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- This form allows the user to refine or modify their query. -->
+  <form class="search-form" action="/search" method="get">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search RestoredCDC.org" maxlength="200">
+    <label for="sortby">Sort by:</label>
+    <select id="sortby" name="sortby">
+      <option value="score" {% if sortby == "score" %}selected{% endif %}>Relevance</option>
+      <option value="title" {% if sortby == "title" %}selected{% endif %}>Title</option>
+    </select>
+    <input type="submit" value="Search">
+  </form>
+
+  <!-- 'Did you mean' suggestion if we have zero hits or a likely correction -->
+  {% if did_you_mean %}
+    <div style="margin:1em 0;padding:0.5em;background:#fffbcc;border:1px solid #ddd;">
+      Did you mean:
+      <a href="?q={{ did_you_mean|urlencode }}&page=1&sortby={{ sortby|urlencode }}">
+        <strong>{{ did_you_mean }}</strong>
+      </a>
+      ?
+    </div>
+  {% endif %}
+
+  <!-- Optional notice if the query was truncated due to length -->
+  {% if notice %}
+    <div style="color: orange; font-weight: bold; margin-top: 10px;">
+      {{ notice }}
+    </div>
+  {% endif %}
+
+  <!-- Display results if present -->
+  {% if results %}
+    <div>
+      <p>Showing up to {{ results|length }} of {{ total }} results for "<strong>{{ query }}</strong>".</p>
+    </div>
+    <hr>
+
+    <ul style="list-style:none;padding-left:0;">
+      {% for result in results %}
+        <li class="result-item">
+          <a href="/{{ result.path }}">{{ result.title }} | RestoredCDC.org</a><br>
+          <span class="result-snippet">{{ result.snippet | replace("\n", "<br>") | safe }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Simple pagination controls (Prev / Next) -->
+    {% set last_page = (total // 15) + (1 if (total % 15) else 0) %}
+    {% if last_page > 1 %}
+      <div class="pager">
+        {% if page > 1 %}
+          <a href="?q={{ query|urlencode }}&page={{ page|int - 1 }}&sortby={{ sortby|urlencode }}">
+            ← Prev
+          </a>
+        {% endif %}
+        <span>Page {{ page }} of {{ last_page }}</span>
+        {% if page < last_page %}
+          <a href="?q={{ query|urlencode }}&page={{ page|int + 1 }}&sortby={{ sortby|urlencode }}">
+            Next →
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <p>No results found.</p>
+  {% endif %}
+</main>
+</body>
+</html>
+

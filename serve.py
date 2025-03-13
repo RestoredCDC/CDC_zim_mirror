@@ -1,4 +1,5 @@
 from urllib import parse
+from urllib.parse import urlparse
 from flask import Flask, Response, redirect, render_template, request
 from waitress import serve
 import plyvel
@@ -335,11 +336,29 @@ def search_route():
 def cdc_search_redirect():
     """
     Catches legacy references to search.cdc.gov and redirects queries
-    back to our local /search route.
+    back to our local /search route, but prevents untrusted URL redirects.
     This is a bit hacky, but prevents needing to change the <path:subpath> route redirect.
     """
-    q = request.args.get("q", "")
-    return redirect(f"/search?q={q}")
+    user_query = request.args.get("q", "")
+
+    # Replace backslashes with empty strings to guard against browser quirks
+    sanitized_q = user_query.replace("\\", "")
+
+    # Parse the sanitized query
+    parsed = urlparse(sanitized_q)
+
+    # If the user’s "q" has a scheme or netloc, that indicates an absolute URL
+    # which we don't want to honor (could cause an open redirect).
+    # So we either block or redirect them to a safe default:
+    if parsed.scheme or parsed.netloc:
+        # Option A: redirect to safe default
+        return redirect("/search?q=")
+
+        # Option B: return a 400 or some safe page
+        # return "Invalid redirect URL.", 400
+
+    # If it passed the checks, safe to incorporate into our local /search
+    return redirect(f"/search?q={sanitized_q}")
 
 
 if __name__ == "__main__":

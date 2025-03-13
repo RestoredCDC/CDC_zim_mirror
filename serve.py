@@ -276,7 +276,8 @@ def search_route():
             try:
                 qobj = parser.parse(trimmed_query)
             except Exception as e:
-                return f"Error parsing query: {e}", 400
+                # app.logger.error(f"Error parsing query: {e}")  # If we setup logging later
+                return "An error occurred while processing your request.", 500
 
             # Determine sorting if specified (either by score or by title).
             facet = None
@@ -289,7 +290,8 @@ def search_route():
                     qobj, page_num, pagelen=page_len, sortedby=facet, terms=True
                 )
             except Exception as e:
-                return f"Error retrieving page: {e}", 500
+                # app.logger.error(f"Error retrieving page: {e}")  # If we setup logging later
+                return "An internal error has occurred.", 500
 
             # Attempt "did you mean" if no hits on first page.
             if page_num == 1 and len(page_obj) == 0:

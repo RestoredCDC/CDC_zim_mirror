@@ -2,7 +2,7 @@
 name: Missing Page Report
 about: Let us know something is missing
 title: ''
-labels: bug
+labels: missing_page
 assignees: ''
 
 ---

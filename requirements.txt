@@ -2,3 +2,7 @@ libzim
 plyvel
 flask
 waitress
+whoosh-reloaded
+beautifulsoup4
+lxml
+tdqm

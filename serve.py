@@ -1,6 +1,6 @@
 from urllib import parse
 from urllib.parse import urlparse
-from flask import Flask, Response, redirect, render_template, request
+from flask import Flask, Response, redirect, render_template, request, url_for
 from waitress import serve
 import plyvel
 import re
@@ -22,8 +22,8 @@ app = Flask(__name__)
 
 # serving to localhost interfaces at port 9090
 hostName = "127.0.0.1"
-serverPort = 9090
-
+serverPort = 9191 #dev port
+#serverPort = 9090 #production port
 # Where the whoosh search index lives
 INDEX_DIR = "search_index"
 
@@ -31,12 +31,45 @@ INDEX_DIR = "search_index"
 body_tag_regex = re.compile(r"(<body\b[^>]*>)", re.IGNORECASE)
 body_end_tag_regex = re.compile(r"</body>", re.IGNORECASE)
 # CDC logo replace
-logo_pattern = r"cdc-logo|logo-notext|logo2|favicon|apple-touch-icon|safari-pinnned-tab|us_flag_small"
+# logo_pattern = r"cdc-logo|logo-notext|logo2|favicon|apple-touch-icon|safari-pinnned-tab|us_flag_small"
 svg_pattern = re.compile(r"<svg[^>]*>.*?</svg>", re.DOTALL)
+
+def replace_logo(html, new_logo_url, new_favicon_url):
+    """
+    Replace the CDC logo/favicons with the RestoredCDC versions.
+    """
+
+    # Patterns to match <img> and <link> sources for CDC logos and favicons
+    logo_pattern = r'(["\'])([^"\']*?(?:cdc-logo|logo-notext|logo2)[^"\']*)(["\'])'
+    icon_pattern = r'(["\'])([^"\']*?(?:favicon|apple-touch-icon|safari-pinned-tab)[^"\']*)(["\'])'
+
+    # Generate URLs using Flask's `url_for()`
+    new_logo_path = url_for('static', filename=f'images/{new_logo_url}')
+    new_favicon_path = url_for('static', filename=f'images/{new_favicon_url}')
+
+    # Replace matched patterns with new URLs
+    html = re.sub(logo_pattern, rf'\1{new_logo_path}\3', html)
+    html = re.sub(icon_pattern, rf'\1{new_favicon_path}\3', html)
+
+    return html
+
 
 # Fix floating navigation
 nav_pattern = r'(<nav\b[^>]*\bclass="[^"]*\bnavbar navbar-expand-lg fixed-top navbar-on-scroll hide\b[^"]*"[^>]*)>'
 nav_replace = r'\1 style = "top: 100px;">'
+
+#News disclaimer search and injection
+# Regular expression to match the start of the News section
+NEWS_SECTION_PATTERN = re.compile(
+    r'(<section class="news[^>]*>\s*<h2>.*?</h2>\s*)',
+    re.DOTALL
+)
+
+NEWS_DISCLAIMER_HTML = """
+<div class="news-disclaimer" style="background-color: #f8d7da; color: #721c24; padding: 10px; border: 1px solid #f5c6cb; margin-bottom: 10px; font-weight: bold;">
+    RestoredCDC is an archival snapshot; therefore, news items and outbreak information are not current.
+</div>
+"""
 
 # this disclaimer will be at the top of every page.
 DISCLAIMER_HTML = """
@@ -114,6 +147,7 @@ def home():
     return redirect("/www.cdc.gov/")
 
 
+
 @app.route("/<path:subpath>")
 def lookup(subpath):
     """
@@ -151,8 +185,9 @@ def lookup(subpath):
                 "An official website of the United States government", ""
             )
             content = re.sub(re.escape("$NAME"), subpath, content, count=1)
-            content = re.sub(logo_pattern, "", content)
+            content = replace_logo(content,'logo.png','favicon.ico')
             content = re.sub(svg_pattern, "", content)
+            content = content.replace("us_flag_small","")
             content = content.replace(
                 "Centers for Disease Control and Prevention. CDC twenty four seven. Saving Lives, Protecting People",
                 "",
@@ -187,6 +222,14 @@ def lookup(subpath):
                 content,
             )
 
+            content = re.sub(r"(News</h2>)", r"\1" + NEWS_DISCLAIMER_HTML, content, count=1)
+
+            # Apply News disclaimer **only** when the request is for index.html
+            if request.path.endswith("/index.html") or request.path == "/www.cdc.gov/":
+                content = NEWS_SECTION_PATTERN.sub(r"\1" + NEWS_DISCLAIMER_HTML, content)
+
+            if "bird-flu" in request.path or "influenza" in request.path:
+                content = re.sub(r"(aria-label=\"Main Content Area\">)", r"\1" + NEWS_DISCLAIMER_HTML, content, count=1)
         #  content = re.sub(body_end_tag_regex, search_override + "\n</body>", content)
         # if the path was not a redirect, serve the content directly along with its mimetype
         # the browser will know what to do with it.
@@ -197,6 +240,7 @@ def lookup(subpath):
         # return Response("404 Not Found", status=404, mimetype="text/plain")
         # return render_template("404.html", error=str(e)), 404
         return render_template("404.html"), 404
+
 
 
 def process_snippets(snippet):

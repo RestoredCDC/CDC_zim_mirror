@@ -71,7 +71,7 @@ NEWS_DISCLAIMER_HTML = """
 </div>
 """
 
-NEWS_SEARCH_TERMS = {"flu", "marburg","outbreak","situation","news"}
+NEWS_SEARCH_TERMS = {"flu", "marburg","outbreak","situation","news","measles","covid","rsv"}
 
 # this disclaimer will be at the top of every page.
 DISCLAIMER_HTML = """

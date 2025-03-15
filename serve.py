@@ -40,7 +40,7 @@ def replace_logo(html, new_logo_url, new_favicon_url):
     """
 
     # Patterns to match <img> and <link> sources for CDC logos and favicons
-    logo_pattern = r'(["\'])([^"\']*?(?:cdc-logo|logo-notext|logo2)[^"\']*)(["\'])'
+    logo_pattern = r'(href|src)=(["\'])([^"\']*?(?:cdc-logo|logo-notext|logo2)[^"\']*)(["\'])'
     icon_pattern = r'(["\'])([^"\']*?(?:favicon|apple-touch-icon|safari-pinned-tab)[^"\']*)(["\'])'
 
     # Generate URLs using Flask's `url_for()`
@@ -48,7 +48,7 @@ def replace_logo(html, new_logo_url, new_favicon_url):
     new_favicon_path = url_for('static', filename=f'images/{new_favicon_url}')
 
     # Replace matched patterns with new URLs
-    html = re.sub(logo_pattern, rf'\1{new_logo_path}\3', html)
+    html = re.sub(logo_pattern, rf'\1=\2{new_logo_path}\4', html)
     html = re.sub(icon_pattern, rf'\1{new_favicon_path}\3', html)
 
     return html

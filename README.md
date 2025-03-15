@@ -216,5 +216,5 @@ docker build -t cdc_server .
 When you want to run the container and make it possible to visit the website, use this command to run it on the command line. It
 
 ```
-docker run  -p 9090:9090/tcp  --mount type=bind,source=/PATH/TO/cdc_database,target=./cdc_database cdc_server
+docker run  -p 9191:9191/tcp  --mount type=bind,source=/PATH/TO/cdc_database,target=./cdc_database cdc_server
 ```

@@ -71,6 +71,8 @@ NEWS_DISCLAIMER_HTML = """
 </div>
 """
 
+NEWS_SEARCH_TERMS = {"flu", "marburg","outbreak","situation","news"}
+
 # this disclaimer will be at the top of every page.
 DISCLAIMER_HTML = """
 <div style="position: sticky; top: 0; background: #f8f9fa; height: 100px; padding: 5px; border-bottom: 2px solid #ddd; z-index: 1000; display: flex; align-items:center;justify-content: space-between; font-size: 0.9em; overflow:hidden;">
@@ -228,7 +230,7 @@ def lookup(subpath):
             if request.path.endswith("/index.html") or request.path == "/www.cdc.gov/":
                 content = NEWS_SECTION_PATTERN.sub(r"\1" + NEWS_DISCLAIMER_HTML, content)
 
-            if "bird-flu" in request.path or "influenza" in request.path:
+            if any(term in request.path.lower() for term in NEWS_SEARCH_TERMS):
                 content = re.sub(r"(aria-label=\"Main Content Area\">)", r"\1" + NEWS_DISCLAIMER_HTML, content, count=1)
         #  content = re.sub(body_end_tag_regex, search_override + "\n</body>", content)
         # if the path was not a redirect, serve the content directly along with its mimetype

@@ -21,7 +21,7 @@ mimetype_db = db.prefixed_db(b"m-")
 app = Flask(__name__)
 
 # serving to localhost interfaces at port 9090
-hostName = "127.0.0.1"
+hostName = "0.0.0.0"
 serverPort = 9191 #dev port
 #serverPort = 9090 #production port
 # Where the whoosh search index lives

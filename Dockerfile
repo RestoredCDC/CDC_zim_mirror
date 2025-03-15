@@ -38,6 +38,9 @@ USER appuser
 COPY ./serve.py /server/serve.py
 COPY ./zim_converter.py /server/zim_converter.py
 
+COPY ./templates /server/templates
+COPY ./static /server/static
+
 EXPOSE 9090
 
 CMD ["python", "./serve.py"]

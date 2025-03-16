@@ -37,10 +37,12 @@ USER appuser
 
 COPY ./serve.py /server/serve.py
 COPY ./zim_converter.py /server/zim_converter.py
+COPY ./build_search_index.py /server/build_search_index.py
+
 
 COPY ./templates /server/templates
 COPY ./static /server/static
 
 EXPOSE 9090
 
-CMD ["python", "./serve.py"]
+CMD ["python", "./serve.py", "--hostname", "0.0.0.0", "--port", "9191"]

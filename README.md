@@ -206,7 +206,7 @@ The `serve.py` file (which serves the entire website) is very short, simple, and
 
 
 # Running in Docker
-The docker file will create a container that contains both the zim_converter script as well as the web server. By default, the container will just run the flask server. If you want to create a local version of the database you can either change the command to run the conversion script or connect to the container and run it directly.
+The docker file will create a container that contains the web server and additional scripts used. By default, the container will just run the flask server. If you want to create a local version of the database you can either change the command to run a script or connect to the container and run it directly.
 
 To build the container, run this command from the root of the workspace
 ```
@@ -216,5 +216,5 @@ docker build -t cdc_server .
 When you want to run the container and make it possible to visit the website, use this command to run it on the command line. It
 
 ```
-docker run  -p 9191:9191/tcp  --mount type=bind,source=/PATH/TO/cdc_database,target=./cdc_database cdc_server
+docker run -p 9191:9191/tcp --mount type=bind,source=/PATH/TO/cdc_database,target=/server/cdc_database cdc_server
 ```

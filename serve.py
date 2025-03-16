@@ -10,6 +10,8 @@ from whoosh.index import open_dir
 from whoosh.qparser import QueryParser, OrGroup, MultifieldParser
 from whoosh import sorting, scoring
 
+from compare import generate_comparison
+
 # this is the path of the LevelDB database we converted from .zim using zim_converter.py
 db = plyvel.DB("./cdc_database")
 
@@ -22,8 +24,8 @@ app = Flask(__name__)
 
 # serving to localhost interfaces at port 9090
 hostName = "127.0.0.1"
-serverPort = 9191 #dev port
-#serverPort = 9090 #production port
+serverPort = 9191  # dev port
+# serverPort = 9090 #production port
 # Where the whoosh search index lives
 INDEX_DIR = "search_index"
 
@@ -34,22 +36,25 @@ body_end_tag_regex = re.compile(r"</body>", re.IGNORECASE)
 # logo_pattern = r"cdc-logo|logo-notext|logo2|favicon|apple-touch-icon|safari-pinnned-tab|us_flag_small"
 svg_pattern = re.compile(r"<svg[^>]*>.*?</svg>", re.DOTALL)
 
+
 def replace_logo(html, new_logo_url, new_favicon_url):
     """
     Replace the CDC logo/favicons with the RestoredCDC versions.
     """
 
     # Patterns to match <img> and <link> sources for CDC logos and favicons
-    logo_pattern = r'(href|src)=(["\'])([^"\']*?(?:cdc-logo|logo-notext|logo2)[^"\']*)(["\'])'
-    icon_pattern = r'(["\'])([^"\']*?(?:favicon|apple-touch-icon|safari-pinned-tab)[^"\']*)(["\'])'
+    logo_pattern = r'(["\'])([^"\']*?(?:cdc-logo|logo-notext|logo2)[^"\']*)(["\'])'
+    icon_pattern = (
+        r'(["\'])([^"\']*?(?:favicon|apple-touch-icon|safari-pinned-tab)[^"\']*)(["\'])'
+    )
 
     # Generate URLs using Flask's `url_for()`
-    new_logo_path = url_for('static', filename=f'images/{new_logo_url}')
-    new_favicon_path = url_for('static', filename=f'images/{new_favicon_url}')
+    new_logo_path = url_for("static", filename=f"images/{new_logo_url}")
+    new_favicon_path = url_for("static", filename=f"images/{new_favicon_url}")
 
     # Replace matched patterns with new URLs
-    html = re.sub(logo_pattern, rf'\1=\2{new_logo_path}\4', html)
-    html = re.sub(icon_pattern, rf'\1{new_favicon_path}\3', html)
+    html = re.sub(logo_pattern, rf"\1{new_logo_path}\3", html)
+    html = re.sub(icon_pattern, rf"\1{new_favicon_path}\3", html)
 
     return html
 
@@ -58,11 +63,10 @@ def replace_logo(html, new_logo_url, new_favicon_url):
 nav_pattern = r'(<nav\b[^>]*\bclass="[^"]*\bnavbar navbar-expand-lg fixed-top navbar-on-scroll hide\b[^"]*"[^>]*)>'
 nav_replace = r'\1 style = "top: 100px;">'
 
-#News disclaimer search and injection
+# News disclaimer search and injection
 # Regular expression to match the start of the News section
 NEWS_SECTION_PATTERN = re.compile(
-    r'(<section class="news[^>]*>\s*<h2>.*?</h2>\s*)',
-    re.DOTALL
+    r'(<section class="news[^>]*>\s*<h2>.*?</h2>\s*)', re.DOTALL
 )
 
 NEWS_DISCLAIMER_HTML = """
@@ -71,7 +75,16 @@ NEWS_DISCLAIMER_HTML = """
 </div>
 """
 
-NEWS_SEARCH_TERMS = {"flu", "marburg","outbreak","situation","news","measles","covid","rsv"}
+NEWS_SEARCH_TERMS = {
+    "flu",
+    "marburg",
+    "outbreak",
+    "situation",
+    "news",
+    "measles",
+    "covid",
+    "rsv",
+}
 
 # this disclaimer will be at the top of every page.
 DISCLAIMER_HTML = """
@@ -82,6 +95,12 @@ DISCLAIMER_HTML = """
   <div style="display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;text-align: center; font-size: 0.8em">
     <a href="https://aboutus.restoredcdc.org/mission" target="_blank" style="padding: 8px 15px; font-weight: bold; background: #2A1E5C; color: white; text-decoration: none; border-radius: 5px;">About RestoredCDC.org</a>
     <a href="https://github.com/RestoredCDC/CDC_zim_mirror/issues" style="padding: 8px 15px; font-weight: bold; background: #2A1E5C; color: white; text-decoration:none; border-radius: 5px" target="_blank">Report a Problem</a>
+  <br>
+    <a href="/compare?archived_url=https://restoredcdc.org/$NAME&current_url=https://www.cdc.gov/$NAME_NO_PREFIX"
+       target="_blank"
+       style="padding: 5px; text-decoration: underline;">
+       Compare with cdc.gov
+    </a>
   </div>
 </div>
 """
@@ -149,7 +168,6 @@ def home():
     return redirect("/www.cdc.gov/")
 
 
-
 @app.route("/<path:subpath>")
 def lookup(subpath):
     """
@@ -180,16 +198,24 @@ def lookup(subpath):
 
         if mimetype.startswith("text/html"):
             content = content.decode("utf-8")
+
+            subpath_no_prefix = subpath
+            if subpath_no_prefix.startswith("www.cdc.gov/"):
+                subpath_no_prefix = subpath_no_prefix.replace("www.cdc.gov/", "", 1)
+
             # here we add the disclaimer with a regex if the request is for a html file.
             content = body_tag_regex.sub(r"\1" + DISCLAIMER_HTML, content, count=1)
             # and replace the official notice
             content = content.replace(
                 "An official website of the United States government", ""
             )
-            content = re.sub(re.escape("$NAME"), subpath, content, count=1)
-            content = replace_logo(content,'logo.png','favicon.ico')
+            content = re.sub(re.escape("$NAME"), subpath, content, count=2)
+            content = re.sub(
+                re.escape("$NAME_NO_PREFIX"), subpath_no_prefix, content, count=1
+            )
+            content = replace_logo(content, "logo.png", "favicon.ico")
             content = re.sub(svg_pattern, "", content)
-            content = content.replace("us_flag_small","")
+            content = content.replace("us_flag_small", "")
             content = content.replace(
                 "Centers for Disease Control and Prevention. CDC twenty four seven. Saving Lives, Protecting People",
                 "",
@@ -224,14 +250,23 @@ def lookup(subpath):
                 content,
             )
 
-            content = re.sub(r"(News</h2>)", r"\1" + NEWS_DISCLAIMER_HTML, content, count=1)
+            content = re.sub(
+                r"(News</h2>)", r"\1" + NEWS_DISCLAIMER_HTML, content, count=1
+            )
 
             # Apply News disclaimer **only** when the request is for index.html
             if request.path.endswith("/index.html") or request.path == "/www.cdc.gov/":
-                content = NEWS_SECTION_PATTERN.sub(r"\1" + NEWS_DISCLAIMER_HTML, content)
+                content = NEWS_SECTION_PATTERN.sub(
+                    r"\1" + NEWS_DISCLAIMER_HTML, content
+                )
 
             if any(term in request.path.lower() for term in NEWS_SEARCH_TERMS):
-                content = re.sub(r"(aria-label=\"Main Content Area\">)", r"\1" + NEWS_DISCLAIMER_HTML, content, count=1)
+                content = re.sub(
+                    r"(aria-label=\"Main Content Area\">)",
+                    r"\1" + NEWS_DISCLAIMER_HTML,
+                    content,
+                    count=1,
+                )
         #  content = re.sub(body_end_tag_regex, search_override + "\n</body>", content)
         # if the path was not a redirect, serve the content directly along with its mimetype
         # the browser will know what to do with it.
@@ -242,7 +277,6 @@ def lookup(subpath):
         # return Response("404 Not Found", status=404, mimetype="text/plain")
         # return render_template("404.html", error=str(e)), 404
         return render_template("404.html"), 404
-
 
 
 def process_snippets(snippet):
@@ -405,6 +439,24 @@ def cdc_search_redirect():
 
     # If it passed the checks, safe to incorporate into our local /search
     return redirect(f"/search?q={sanitized_q}")
+
+
+@app.route("/compare")
+def compare():
+    archived_url = request.args.get("archived_url", "")
+    current_url = request.args.get("current_url", "")
+    comparison_report = generate_comparison(archived_url, current_url)
+    # Replace the disclaimer with a version that doesn't include the comparison link
+    # since we're already on the comparison page
+    final_disclaimer = DISCLAIMER_HTML.replace(
+        "/compare?archived_url=https://restoredcdc.org/$NAME&current_url=https://www.cdc.gov/$NAME_NO_PREFIX",
+        "",
+    )
+    final_disclaimer = final_disclaimer.replace("Compare with cdc.gov", "")
+    final_disclaimer = final_disclaimer.replace("$NAME", "www.cdc.gov/")
+    return render_template(
+        "compare.html", comparison_report=comparison_report, disclaimer=final_disclaimer
+    )
 
 
 if __name__ == "__main__":

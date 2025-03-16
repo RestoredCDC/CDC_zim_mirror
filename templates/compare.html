@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Comparison Results | RestoredCDC.org</title>
+  <style>
+    /* Overall page styling matching our search results layout */
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #005ea2;
+      color: #fff;
+      padding: 0.75rem 0;
+    }
+    .header-content {
+      max-width: 80%;
+      width: 95%;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+    }
+    main {
+      font-size: 18px;
+      max-width: 80%;
+      width: 95%;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .header-disclaimer { 
+      margin-bottom: 0; 
+    }
+    .nav-buttons {
+      margin: 1rem 0;
+    }
+    .nav-buttons a {
+      display: inline-block;
+      margin-right: 1em;
+      padding: 0.5em 1em;
+      background-color: #2A1E5C;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    /* Diff output styling */
+    #diff-col {
+      font-family: sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      white-space: normal;
+      padding: 0.5rem;
+      background: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  {# Retrieve URLs from query parameters #}
+  {% set archived_url = request.args.get('archived_url') %}
+  {% set current_url = request.args.get('current_url') %}
+  
+  {# Derive a relative URL for RestoredCDC.org if applicable.
+     This makes the links work properly if the hosting domain changes or the app is run locally.
+     The displayed link text remains absolute. #}
+  {% set archived_relative = archived_url %}
+  {% if archived_url.startswith("https://restoredcdc.org/") %}
+    {% set archived_relative = archived_url|replace("https://restoredcdc.org/", "/") %}
+  {% endif %}
+
+  <!-- Insert the disclaimer at the top -->
+  <div class="header-disclaimer">
+    {{ disclaimer|safe }}
+  </div>
+
+  <header>
+    <div class="header-content">
+      <h1>RestoredCDC.org Comparison</h1>
+      <div class="nav-buttons">
+        {# "View on RestoredCDC.org" uses the relative URL #}
+        <a href="{{ archived_relative }}" target="_self">
+          &#8592; View on RestoredCDC.org
+        </a>
+        {# "View on cdc.gov" opens in a new tab #}
+        <a href="{{ current_url }}" target="_blank">
+          View on cdc.gov
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Display the full URLs as clickable links -->
+    <p>
+      <strong>RestoredCDC.org URL:</strong>
+      <a href="{{ archived_relative }}" target="_self">
+        {{ archived_url }}
+      </a>
+      <br>
+      <strong>cdc.gov URL:</strong>
+      <a href="{{ current_url }}" target="_blank">
+        {{ current_url }}
+      </a>
+    </p>
+    <hr>
+    <!-- Diff output -->
+    <div id="diff-col">
+      {{ comparison_report | safe }}
+    </div>
+  </main>
+</body>
+</html>

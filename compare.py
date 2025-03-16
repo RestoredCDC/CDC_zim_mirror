@@ -26,7 +26,8 @@ Security improvements:
   - For dynamic pages (e.g. cdc.gov), we fetch the rendered HTML using Playwright.
 
 Note:
-  Portions of this feature are inspired by changedetection.io
+  - Playwright must be installed with "playwright install" after installing with pip.
+  - Portions of this feature are inspired by changedetection.io
    (https://github.com/changedetectionio/changedetection.io).
 """
 

@@ -2,6 +2,7 @@ from urllib import parse
 from urllib.parse import urlparse
 from flask import Flask, Response, redirect, render_template, request, url_for, jsonify
 from waitress import serve
+import argparse
 import plyvel
 import re
 import json
@@ -12,8 +13,14 @@ from whoosh.index import open_dir
 from whoosh.qparser import QueryParser, OrGroup, MultifieldParser
 from whoosh import sorting, scoring
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--hostname', default="127.0.0.1", type=str)
+parser.add_argument('--port', default=9090, type=int)
+parser.add_argument('--dbfolder', default="cdc_database", type=str)
+args = parser.parse_args()
+
 # this is the path of the LevelDB database we converted from .zim using zim_converter.py
-db = plyvel.DB("./cdc_database")
+db = plyvel.DB(str(args.dbfolder))
 
 # the LevelDB database has 2 keyspaces, one for the content, and one for its type
 # please check zim_converter.py script comments for more info
@@ -23,9 +30,8 @@ mimetype_db = db.prefixed_db(b"m-")
 app = Flask(__name__)
 
 # serving to localhost interfaces at port 9090
-hostName = "127.0.0.1"
-serverPort = 9191 #dev port
-#serverPort = 9090 #production port
+hostName = args.hostname
+serverPort = args.port
 # Where the whoosh search index lives
 INDEX_DIR = "search_index"
 

@@ -170,7 +170,7 @@ def fetch_html(url: str, allowed_domains: List[str]) -> str:
 
     # For cdc.gov pages, we use Playwright to get the dynamic content.
     parsed_url = urlparse(url)
-    if parsed_url.hostname and parsed_url.hostname.endswith("cdc.gov"):
+    if parsed_url.hostname and (parsed_url.hostname == "cdc.gov" or parsed_url.hostname.endswith(".cdc.gov")):
         logger.info(f"Fetching rendered HTML for dynamic page: {url}")
         return fetch_rendered_html(url)
     else:

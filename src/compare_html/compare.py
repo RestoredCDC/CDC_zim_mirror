@@ -118,11 +118,6 @@ def validate_url(url: str, allowed_domains: List[str]) -> bool:
         logger.warning(f"URL not in allowed domains: {url}")
         return False
 
-    # Additional checks to prevent SSRF
-    if parsed.path or parsed.params or parsed.query or parsed.fragment:
-        logger.warning(f"URL contains disallowed components: {url}")
-        return False
-
     return True
 
 def fetch_rendered_html(url: str) -> str:
@@ -502,9 +497,10 @@ def generate_comparison(restored_url: str, current_url: str) -> str:
         ValueError: If either URL does not pass validation.
     """
     if not validate_url(restored_url, ["restoredcdc.org"]):
-        raise ValueError("Archived URL is not allowed. Must be on restoredcdc.org.")
+        raise ValueError(f"Archived URL '{restored_url}' is not allowed. Must be on restoredcdc.org.")
+
     if not validate_url(current_url, ["cdc.gov"]):
-        raise ValueError("Current URL is not allowed. Must be on cdc.gov.")
+        raise ValueError(f"Current URL ' {current_url}' is not allowed. Must be on cdc.gov.")
 
     archived_html = fetch_html(restored_url, ["restoredcdc.org"])
     current_html = fetch_html(current_url, ["cdc.gov"])

@@ -114,13 +114,16 @@ def validate_url(url: str, allowed_domains: List[str]) -> bool:
         return False
 
     netloc = parsed.netloc.lower()
-    for domain in allowed_domains:
-        if netloc.endswith(domain.lower()):
-            return True
+    if not any(netloc.endswith(domain.lower()) for domain in allowed_domains):
+        logger.warning(f"URL not in allowed domains: {url}")
+        return False
 
-    logger.warning(f"URL not in allowed domains: {url}")
-    return False
+    # Additional checks to prevent SSRF
+    if parsed.path or parsed.params or parsed.query or parsed.fragment:
+        logger.warning(f"URL contains disallowed components: {url}")
+        return False
 
+    return True
 
 def fetch_rendered_html(url: str) -> str:
     """
@@ -147,7 +150,7 @@ def fetch_rendered_html(url: str) -> str:
         return ""
 
 
-def fetch_html(url: str) -> str:
+def fetch_html(url: str, allowed_domains: List[str]) -> str:
     """
     Fetch HTML content from the provided URL.
 
@@ -156,10 +159,15 @@ def fetch_html(url: str) -> str:
 
     Parameters:
         url (str): The target URL.
+        allowed_domains (List[str]): List of allowed domain substrings (e.g. "restoredcdc.org").
 
     Returns:
         str: The HTML content as a string; empty string on failure.
     """
+    if not validate_url(url, allowed_domains):
+        logger.error(f"Invalid URL: {url}")
+        return ""
+
     # For cdc.gov pages, we use Playwright to get the dynamic content.
     parsed_url = urlparse(url)
     if parsed_url.hostname and parsed_url.hostname.endswith("cdc.gov"):
@@ -181,7 +189,6 @@ def fetch_html(url: str) -> str:
         except requests.RequestException as e:
             logger.error(f"Error fetching {url}: {e}")
             return ""
-
 
 def process_children(node, current_indent: int) -> List[tuple]:
     """
@@ -499,8 +506,8 @@ def generate_comparison(restored_url: str, current_url: str) -> str:
     if not validate_url(current_url, ["cdc.gov"]):
         raise ValueError("Current URL is not allowed. Must be on cdc.gov.")
 
-    archived_html = fetch_html(restored_url)
-    current_html = fetch_html(current_url)
+    archived_html = fetch_html(restored_url, ["restoredcdc.org"])
+    current_html = fetch_html(current_url, ["cdc.gov"])
 
     # Prepare hidden cells with full extracted text.
     archived_text_html = flatten_diff_html(

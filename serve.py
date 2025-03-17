@@ -1,9 +1,11 @@
 from urllib import parse
 from urllib.parse import urlparse
-from flask import Flask, Response, redirect, render_template, request, url_for
+from flask import Flask, Response, redirect, render_template, request, url_for, jsonify
 from waitress import serve
 import plyvel
 import re
+import json
+from src.compare_html.compare import generate_comparison
 
 # Whoosh-reloaded imports for search functionality
 from whoosh.index import open_dir
@@ -56,7 +58,7 @@ def replace_logo(html, new_logo_url, new_favicon_url):
 
 # Fix floating navigation
 nav_pattern = r'(<nav\b[^>]*\bclass="[^"]*\bnavbar navbar-expand-lg fixed-top navbar-on-scroll hide\b[^"]*"[^>]*)>'
-nav_replace = r'\1 style = "top: 100px;">'
+nav_replace = r'\1 style = "top: 55px;">'
 
 #News disclaimer search and injection
 # Regular expression to match the start of the News section
@@ -75,16 +77,60 @@ NEWS_SEARCH_TERMS = {"flu", "marburg","outbreak","situation","news","measles","c
 
 # this disclaimer will be at the top of every page.
 DISCLAIMER_HTML = """
-<div style="position: sticky; top: 0; background: #f8f9fa; height: 100px; padding: 5px; border-bottom: 2px solid #ddd; z-index: 1000; display: flex; align-items:center;justify-content: space-between; font-size: 0.9em; overflow:hidden;">
-  <div style="flex: 1; overflow-y: auto; padding-right: 5px; max-height:100px;">
-    <p style = "margin: 0; font-size: color: #555;">Original site: $NAME<br> RestoredCDC.org is an independent project and is not affiliated with, endorsed by, or associated with the Centers for Disease Control and Prevention (CDC) or any government entity. The CDC provides information free of charge at <a href="http://www.cdc.gov">CDC.gov</a>. Note the following: 1) Due to archival on January 6, 2025, no information on recent outbreaks is available. 2) Videos have not been restored. 3) Go to <a href="https://data.restoredcdc.org">data.restoredcdc.org</a>(folder organization on-going) to access restored data. 4) Use of this site implies acceptance of this disclaimer.</p>
+<div id="restoredCDC_banner">
+  <div id="text_block">
+    <p id="disclaimer_text">
+      <strong>Original site:</strong> <span style="color: #333;">$NAME</span> |
+      <strong>RestoredCDC.org</strong> is an independent project, not affiliated with CDC or any federal entity. Visit <a href="http://www.cdc.gov">CDC.gov</a> for free official information. Due to archival on <strong>January 6, 2025</strong>, recent outbreak data is unavailable. Videos are not restored. Access <a href="https://data.restoredcdc.org">data.restoredcdc.org</a> for restored data. Use of this site implies acceptance of this disclaimer.
+    </p>
+    <a id="toggle_disclaimer" href="javascript:void(0);">[More]</a>
   </div>
-  <div style="display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;text-align: center; font-size: 0.8em">
-    <a href="https://aboutus.restoredcdc.org/mission" target="_blank" style="padding: 8px 15px; font-weight: bold; background: #2A1E5C; color: white; text-decoration: none; border-radius: 5px;">About RestoredCDC.org</a>
-    <a href="https://github.com/RestoredCDC/CDC_zim_mirror/issues" style="padding: 8px 15px; font-weight: bold; background: #2A1E5C; color: white; text-decoration:none; border-radius: 5px" target="_blank">Report a Problem</a>
+  <div id="disclaimer_buttons">
+    <a href="https://aboutus.restoredcdc.org/mission" target="_blank">About Us</a>
+    <a href="https://github.com/RestoredCDC/CDC_zim_mirror/issues" target="_blank">Report Bug</a>
+    <a href="/compare?cdc_url=$CDC_URL&this_url=$THIS_URL" target="_blank">Compare Content</a>
   </div>
 </div>
+<script>
+document.getElementById("toggle_disclaimer").addEventListener("click", function() {
+    var disclaimer = document.getElementById("disclaimer_text");
+    var banner = document.getElementById("restoredCDC_banner");
+
+    if (disclaimer.style.maxHeight && disclaimer.style.maxHeight !== "1.2em") {
+        // Collapse disclaimer
+        disclaimer.style.maxHeight = "1.2em";
+        disclaimer.style.overflow = "hidden";
+        disclaimer.style.whiteSpace = "nowrap";
+        disclaimer.style.textOverflow = "ellipsis";
+        this.innerText = "[More]";
+
+        // Shrink banner after transition
+        setTimeout(() => {
+            banner.style.height = ""; // Reset to auto height
+        }, 300); // Match transition duration
+    } else {
+        // Expand disclaimer
+        disclaimer.style.maxHeight = disclaimer.scrollHeight + "px";
+        disclaimer.style.overflow = "visible";
+        disclaimer.style.whiteSpace = "normal";
+        this.innerText = "[Less]";
+
+        // Expand banner dynamically
+        banner.style.height = (banner.scrollHeight + disclaimer.scrollHeight) + "px";
+
+        // Reset maxHeight after transition completes
+        setTimeout(() => {
+            disclaimer.style.maxHeight = "none"; // Allow natural height expansion
+        }, 300);
+    }
+});
+
+</script>
+
 """
+# Read the CSS file
+with open("static/style_overrides.css", "r", encoding="utf-8") as css_file:
+    STYLE_OVERRIDE = css_file.read()
 
 # Patterns to replace the disabled search forms in the legacy code with functional ones
 desktop_search_pattern = re.compile(
@@ -112,6 +158,21 @@ sticky_search_replace = """
     </button>
 </form>
 """
+
+search_toggle_pattern = re.compile(
+        r'<form action="https://search.cdc.gov/search/".*?</form>',re.DOTALL
+)
+search_toggle_replace = """
+<form action="/search" method="GET" class="cdc-header-search-form" role="search">
+	<a href="#" id="cdc-search__toggle">Search</a>
+	<div class="input-group cdc-header__search__group">
+		<span class="cdc-header__search-icon cdc-fa-magnifying-glass" aria-hidden="true"></span>
+		<input class="form-control" data-search-input="" autocomplete="off" type="search" name="query" id="cdc-search__input" maxlength="300" placeholder="" autocorrect="on" spellcheck="false"><div class="cdc-search-complete"></div>
+		<button class="cdc-header__search-submit btn" type="submit" id="cdc-search__submit">Search RestoredCDC</button>
+	</div>
+</form>
+"""
+
 
 mobile_search_pattern = re.compile(
     r'<form id="cdc-mobile-search-form".*?</form>', re.DOTALL
@@ -180,6 +241,7 @@ def lookup(subpath):
 
         if mimetype.startswith("text/html"):
             content = content.decode("utf-8")
+            content = content.replace("</head>", "<style>" + STYLE_OVERRIDE + "</style></head>")
             # here we add the disclaimer with a regex if the request is for a html file.
             content = body_tag_regex.sub(r"\1" + DISCLAIMER_HTML, content, count=1)
             # and replace the official notice
@@ -189,6 +251,9 @@ def lookup(subpath):
             content = re.sub(re.escape("$NAME"), subpath, content, count=1)
             content = replace_logo(content,'logo.png','favicon.ico')
             content = re.sub(svg_pattern, "", content)
+            content = content.replace("$CDC_URL","https://" + subpath)
+            content = content.replace("$THIS_URL","https://www.restoredcdc.org/"+subpath)
+
             content = content.replace("us_flag_small","")
             content = content.replace(
                 "Centers for Disease Control and Prevention. CDC twenty four seven. Saving Lives, Protecting People",
@@ -203,7 +268,7 @@ def lookup(subpath):
                 'id="cdc-footer-nav"',
                 'id="cdc-footer-nav" style="display:block !important;"',
             )
-            content = re.sub(nav_pattern, nav_replace, content, count=1)
+            #content = re.sub(nav_pattern, nav_replace, content, count=1)
             content = content.replace("<title>", "<title>Restored CDC | ")
             content = content.replace(
                 'href="https://www.cdc.gov', 'href="https://www.restoredcdc.org'
@@ -224,6 +289,11 @@ def lookup(subpath):
                 content,
             )
 
+            #content = re.sub(
+            #    search_toggle_pattern,
+            #    search_toggle_replace + search_fix_script,
+            #    content,
+            #)
             content = re.sub(r"(News</h2>)", r"\1" + NEWS_DISCLAIMER_HTML, content, count=1)
 
             # Apply News disclaimer **only** when the request is for index.html
@@ -243,6 +313,28 @@ def lookup(subpath):
         # return render_template("404.html", error=str(e)), 404
         return render_template("404.html"), 404
 
+
+@app.route('/compare', methods=['GET'])
+def compare():
+    cdc_url = request.args.get("cdc_url", "").strip()
+    this_url = request.args.get("this_url", "").strip()
+
+    if not cdc_url or not this_url:
+        return "Error: Both URLs are required.", 400
+
+    # Generate the JSON comparison data
+    comparison_report = generate_comparison(this_url, cdc_url)
+    final_disclaimer = DISCLAIMER_HTML.replace(
+        "/compare?this_url=https://restoredcdc.org/$NAME&cdc_url=https://www.cdc.gov/$NAME_NO_PREFIX",
+        "",
+    )
+    final_disclaimer = final_disclaimer.replace("Compare with cdc.gov", "")
+    final_disclaimer = final_disclaimer.replace("$NAME", "www.cdc.gov/")
+
+    URLs = [cdc_url, this_url]
+
+    return render_template("compare.html", comparison_report=comparison_report, disclaimer=final_disclaimer,
+                           pageURLs = URLs)
 
 
 def process_snippets(snippet):

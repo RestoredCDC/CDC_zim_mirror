@@ -6,3 +6,4 @@ whoosh-reloaded
 beautifulsoup4
 lxml
 tdqm
+playwright

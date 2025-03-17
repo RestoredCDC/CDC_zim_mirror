@@ -161,7 +161,8 @@ def fetch_html(url: str) -> str:
         str: The HTML content as a string; empty string on failure.
     """
     # For cdc.gov pages, we use Playwright to get the dynamic content.
-    if "cdc.gov" in url:
+    parsed_url = urlparse(url)
+    if parsed_url.hostname and parsed_url.hostname.endswith("cdc.gov"):
         logger.info(f"Fetching rendered HTML for dynamic page: {url}")
         return fetch_rendered_html(url)
     else:

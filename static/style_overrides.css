@@ -77,12 +77,14 @@
     .navbar-brand img {
         height:80px;
         max-height:42px
+        padding-top: 20px;
     }
 
  /*   a#cdc-search__toggle{
         display: block !important;
     }
 */
+
 
 @media screen and (min-width:992px) {
     .navbar-brand img {
@@ -94,6 +96,7 @@
     #restoredCDC_banner {
       display: block;
       padding: 10px;
+        height: 80px;
     }
     #disclaimer_buttons {
       justify-content: center;

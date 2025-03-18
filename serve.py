@@ -97,6 +97,9 @@ DISCLAIMER_HTML = """
     <a href="/compare?cdc_url=$CDC_URL&this_url=$THIS_URL" target="_blank">Compare Content</a>
   </div>
 </div>
+"""
+
+BANNER_SCRIPT = """
 <script>
 document.getElementById("toggle_disclaimer").addEventListener("click", function() {
     var disclaimer = document.getElementById("disclaimer_text");
@@ -247,7 +250,7 @@ def lookup(subpath):
 
         if mimetype.startswith("text/html"):
             content = content.decode("utf-8")
-            content = content.replace("</head>", "<style>" + STYLE_OVERRIDE + "</style></head>")
+            content = content.replace("</head>", "<style>" + STYLE_OVERRIDE + "</style>" + BANNER_SCRIPT +" </head>")
             # here we add the disclaimer with a regex if the request is for a html file.
             content = body_tag_regex.sub(r"\1" + DISCLAIMER_HTML, content, count=1)
             # and replace the official notice

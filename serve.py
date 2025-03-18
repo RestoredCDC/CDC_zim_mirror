@@ -102,6 +102,11 @@ DISCLAIMER_HTML = """
 BANNER_SCRIPT = """
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    var searchForms = document.querySelectorAll('form.cdc-header-search-form');
+    searchForms.forEach(function(form) {
+        form.action = "/search";
+    });
+
     document.getElementById("toggle_disclaimer").addEventListener("click", function() {
         var disclaimer = document.getElementById("disclaimer_text");
         var banner = document.getElementById("restoredCDC_banner");
@@ -197,19 +202,6 @@ mobile_search_replace = """
 </form>
 """
 
-# Short script to ensure search forms point to /search if the page's JS tries to override it.
-search_fix_script = """
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    var searchForms = document.querySelectorAll('form.cdc-header-search-form');
-    searchForms.forEach(function(form) {
-        form.action = "/search";
-    });
-});
-</script>
-"""
-
-
 @app.route("/")
 def home():
     """
@@ -251,7 +243,10 @@ def lookup(subpath):
 
         if mimetype.startswith("text/html"):
             content = content.decode("utf-8")
-            content = content.replace("</head>", "<style>" + STYLE_OVERRIDE + "</style>" + BANNER_SCRIPT +" </head>")
+            content = content.replace("</head>", 
+                                      "<style>" + STYLE_OVERRIDE + "</style>" + 
+                                      BANNER_SCRIPT +  
+                                      "</head>")
             # here we add the disclaimer with a regex if the request is for a html file.
             content = body_tag_regex.sub(r"\1" + DISCLAIMER_HTML, content, count=1)
             # and replace the official notice
@@ -285,23 +280,23 @@ def lookup(subpath):
             )
             content = re.sub(
                 desktop_search_pattern,
-                desktop_search_replace + search_fix_script,
+                desktop_search_replace,
                 content,
             )
             content = re.sub(
                 sticky_search_pattern,
-                sticky_search_replace + search_fix_script,
+                sticky_search_replace,
                 content,
             )
             content = re.sub(
                 mobile_search_pattern,
-                mobile_search_replace + search_fix_script,
+                mobile_search_replace,
                 content,
             )
 
             #content = re.sub(
             #    search_toggle_pattern,
-            #    search_toggle_replace + search_fix_script,
+            #    search_toggle_replace,
             #    content,
             #)
             content = re.sub(r"(News</h2>)", r"\1" + NEWS_DISCLAIMER_HTML, content, count=1)

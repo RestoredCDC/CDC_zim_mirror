@@ -97,40 +97,44 @@ DISCLAIMER_HTML = """
     <a href="/compare?cdc_url=$CDC_URL&this_url=$THIS_URL" target="_blank">Compare Content</a>
   </div>
 </div>
+"""
+
+BANNER_SCRIPT = """
 <script>
-document.getElementById("toggle_disclaimer").addEventListener("click", function() {
-    var disclaimer = document.getElementById("disclaimer_text");
-    var banner = document.getElementById("restoredCDC_banner");
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("toggle_disclaimer").addEventListener("click", function() {
+        var disclaimer = document.getElementById("disclaimer_text");
+        var banner = document.getElementById("restoredCDC_banner");
 
-    if (disclaimer.style.maxHeight && disclaimer.style.maxHeight !== "1.2em") {
-        // Collapse disclaimer
-        disclaimer.style.maxHeight = "1.2em";
-        disclaimer.style.overflow = "hidden";
-        disclaimer.style.whiteSpace = "nowrap";
-        disclaimer.style.textOverflow = "ellipsis";
-        this.innerText = "[More]";
+        if (disclaimer.style.maxHeight && disclaimer.style.maxHeight !== "1.2em") {
+            // Collapse disclaimer
+            disclaimer.style.maxHeight = "1.2em";
+            disclaimer.style.overflow = "hidden";
+            disclaimer.style.whiteSpace = "nowrap";
+            disclaimer.style.textOverflow = "ellipsis";
+            this.innerText = "[More]";
 
-        // Shrink banner after transition
-        setTimeout(() => {
-            banner.style.height = ""; // Reset to auto height
-        }, 300); // Match transition duration
-    } else {
-        // Expand disclaimer
-        disclaimer.style.maxHeight = disclaimer.scrollHeight + "px";
-        disclaimer.style.overflow = "visible";
-        disclaimer.style.whiteSpace = "normal";
-        this.innerText = "[Less]";
+            // Shrink banner after transition
+            setTimeout(() => {
+                banner.style.height = ""; // Reset to auto height
+            }, 300); // Match transition duration
+        } else {
+            // Expand disclaimer
+            disclaimer.style.maxHeight = disclaimer.scrollHeight + "px";
+            disclaimer.style.overflow = "visible";
+            disclaimer.style.whiteSpace = "normal";
+            this.innerText = "[Less]";
 
-        // Expand banner dynamically
-        banner.style.height = (banner.scrollHeight + disclaimer.scrollHeight) + "px";
+            // Expand banner dynamically
+            banner.style.height = (banner.scrollHeight + disclaimer.scrollHeight) + "px";
 
-        // Reset maxHeight after transition completes
-        setTimeout(() => {
-            disclaimer.style.maxHeight = "none"; // Allow natural height expansion
-        }, 300);
-    }
+            // Reset maxHeight after transition completes
+            setTimeout(() => {
+                disclaimer.style.maxHeight = "none"; // Allow natural height expansion
+            }, 300);
+        }
+    });
 });
-
 </script>
 
 """
@@ -247,7 +251,7 @@ def lookup(subpath):
 
         if mimetype.startswith("text/html"):
             content = content.decode("utf-8")
-            content = content.replace("</head>", "<style>" + STYLE_OVERRIDE + "</style></head>")
+            content = content.replace("</head>", "<style>" + STYLE_OVERRIDE + "</style>" + BANNER_SCRIPT +" </head>")
             # here we add the disclaimer with a regex if the request is for a html file.
             content = body_tag_regex.sub(r"\1" + DISCLAIMER_HTML, content, count=1)
             # and replace the official notice

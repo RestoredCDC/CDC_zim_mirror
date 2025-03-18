@@ -94,6 +94,7 @@
     #restoredCDC_banner {
       display: block;
       padding: 10px;
+      height: 80px;
     }
     #disclaimer_buttons {
       justify-content: center;

@@ -127,6 +127,46 @@
         z-index: 300;
     }
 
+    .legend-container {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	max-width: 350px;
+        text-align: left;
+    }
+    .legend-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        border-bottom: 2px solid #ddd;
+        padding-bottom: 5px;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    .legend-box {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        margin-right: 10px;
+    }
+    .removed {
+        background-color: #fadad7;
+        border: 1px solid #b30000;
+    }
+    .added {
+        background-color: #eaf2c2;
+        border: 1px solid #406619;
+    }
+    .same {
+        background-color: #ddd;
+        border: 1px solid #888;
+    }
+
   @media (max-width: 600px) {
     #restoredCDC_banner {
       display: block;
@@ -186,7 +226,23 @@
       </a>
     </p>
     <hr>
-    <!-- Diff output -->
+    <div class="legend-container">
+    <div class="legend-title">Legend</div>
+    <div class="legend-item">
+        <div class="legend-box removed"></div> 
+        <span>Removed: No longer exists on the CDC site.</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-box added"></div> 
+        <span>Added: Newly added to the CDC site.</span>
+    </div>
+    <div class="legend-item">
+        <div class="legend-box same"></div> 
+        <span>Regular: Unchanged text.</span>
+    </div>
+</div>
+
+    <hr>
     <div id="diff-col">
       {{ comparison_report | safe }}
     </div>

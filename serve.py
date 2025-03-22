@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from urllib import parse
 from urllib.parse import urlparse
 from flask import Flask, Response, redirect, render_template, request, url_for, jsonify

@@ -17,15 +17,25 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--hostname', default="127.0.0.1", type=str)
 parser.add_argument('--port', default=9090, type=int)
 parser.add_argument('--dbfolder', default="cdc_database", type=str)
+parser.add_argument('--patchdbfolder', default="../patch_leveldb/patch_db", type=str)
 args = parser.parse_args()
 
-# this is the path of the LevelDB database we converted from .zim using zim_converter.py
-db = plyvel.DB(str(args.dbfolder))
+# somewhere above in your code
+try:
+    base_db = plyvel.DB(str(args.dbfolder), create_if_missing=False)
+except Exception as e:
+    print("❌ Error opening base_db:", e)
 
-# the LevelDB database has 2 keyspaces, one for the content, and one for its type
-# please check zim_converter.py script comments for more info
-content_db = db.prefixed_db(b"c-")
-mimetype_db = db.prefixed_db(b"m-")
+try:
+    patched_db = plyvel.DB(str(args.patchdbfolder), create_if_missing=False)
+except Exception as e:
+    print("❌ Error opening patch_db:", e)
+
+base_content_db = base_db.prefixed_db(b"c-")
+base_mimetype_db = base_db.prefixed_db(b"m-")
+
+patched_content_db = patched_db.prefixed_db(b"c-")
+patched_mimetype_db = patched_db.prefixed_db(b"m-")
 
 app = Flask(__name__)
 
@@ -87,7 +97,7 @@ DISCLAIMER_HTML = """
   <div id="text_block">
     <p id="disclaimer_text">
       <strong>Original site:</strong> <span style="color: #333;">$NAME</span> |
-      <strong>RestoredCDC.org</strong> is an independent project, not affiliated with CDC or any federal entity. Visit <a href="http://www.cdc.gov">CDC.gov</a> for free official information. Due to archival on <strong>January 6, 2025</strong>, recent outbreak data is unavailable. Videos are not restored. Access <a href="https://data.restoredcdc.org">data.restoredcdc.org</a> for restored data. Use of this site implies acceptance of this disclaimer.
+  <span style="color:red; font-weight:bold;">RestoredCDC.org will be intermittently down for maintenance on Saturday, March 29th, from 8:00 a.m. to 10:00 p.m. ET.</span> | <strong>RestoredCDC.org</strong> is an independent project, not affiliated with CDC or any federal entity. Visit <a href="http://www.cdc.gov">CDC.gov</a> for free official information. Due to archival on <strong>January 6, 2025</strong>, recent outbreak data is unavailable. Videos are not restored. Access <a href="https://data.restoredcdc.org">data.restoredcdc.org</a> for restored data. Use of this site implies acceptance of this disclaimer.
     </p>
     <a id="toggle_disclaimer" href="javascript:void(0);">[More]</a>
   </div>
@@ -217,23 +227,27 @@ def home():
 def lookup(subpath):
     """
     Catch-all route
-    from here we will collect the path requested after www.example.com
-    and look for it in the database so if a request for www.example.com/www.cdc.gov/something/image.jpg
-    is requested, here we capture /www.cdc.gov/something/image.jpg part of it, remove the first / character
-    then search for the remaining path in database, get its data and type from the database
-    and serve it back directly.
     """
 
     try:
         # capture the path and fix its quoted characters
         full_path = parse.unquote(subpath)
-        # print(f"Request for: {full_path}")
+        print(f"Request for: {full_path}")
 
-        # convert the path to bytes and get the content from the database
-        content = content_db.get(bytes(full_path, "UTF-8"))
-        # convert the path to bytes and get the content type from the database and decode it to a string
-        # (mimetype is always a string)
-        mimetype = mimetype_db.get(bytes(full_path, "UTF-8")).decode("utf-8")
+        # Look up content: patched first, then base
+        content = patched_content_db.get(bytes(full_path, "UTF-8"))
+        if content is None:
+            content = base_content_db.get(bytes(full_path, "UTF-8"))
+
+        # Same for mimetype
+        mimetype_bytes = patched_mimetype_db.get(bytes(full_path, "UTF-8"))
+        if mimetype_bytes is None:
+            mimetype_bytes = base_mimetype_db.get(bytes(full_path, "UTF-8"))
+
+        if content is None or mimetype_bytes is None:
+            return Response("Not found", status=404)
+
+        mimetype = mimetype_bytes.decode("utf-8")
 
         # if the content type is the special value "=redirect=" this path redirected to another
         # at crawl time. for relative paths to work, we need to just redirect the user to that
@@ -507,3 +521,4 @@ def cdc_search_redirect():
 if __name__ == "__main__":
     print(f"Starting cdcmirror server process at port {serverPort}")
     serve(app, host=hostName, port=serverPort)
+

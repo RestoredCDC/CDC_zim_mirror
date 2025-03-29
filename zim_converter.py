@@ -1,15 +1,23 @@
+#!/usr/bin/env python3
+
 # converts a zim capture of a web page to LevelDB format
 # batuhan@earslap.com
 import libzim
 import plyvel
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--archive", default="www.cdc.gov_en_all_novid_2025-01.zim", type=str)
+parser.add_argument("--dbfolder", default="cdc_database", type=str)
+args = parser.parse_args()
 
 # load the zim archive from the working directory
-arch = libzim.Archive(r"./www.cdc.gov_en_all_novid_2025-01.zim")
+arch = libzim.Archive(args.archive)
 
 # create the LevelDB database in the working directory under ./cdc_database
 # this database will contain the entire link path -> response pairs
 # so the entire contents of the website
-db = plyvel.DB('./cdc_database', create_if_missing=True)
+db = plyvel.DB(args.dbfolder, create_if_missing=True)
 
 # each piece of captured data in the database is a byte sequence.
 # we don't necessarily know its type.

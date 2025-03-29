@@ -232,7 +232,6 @@ def lookup(subpath):
     try:
         # capture the path and fix its quoted characters
         full_path = parse.unquote(subpath)
-        print(f"Request for: {full_path}")
 
         # Look up content: patched first, then base
         content = patched_content_db.get(bytes(full_path, "UTF-8"))
@@ -245,7 +244,7 @@ def lookup(subpath):
             mimetype_bytes = base_mimetype_db.get(bytes(full_path, "UTF-8"))
 
         if content is None or mimetype_bytes is None:
-            return Response("Not found", status=404)
+            return render_template("404.html"), 404
 
         mimetype = mimetype_bytes.decode("utf-8")
 

@@ -1,251 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Comparison Results | RestoredCDC.org</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-<style>
-    /* Overall page styling matching our search results layout */
-    body {
-      font-family: "Nunito", sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: linear-gradient(90deg, #0057B7 0%, #0081a1 100%);
-      color: #fff;
-    }
-    .header-content {
-      max-width: 80%;
-      width: 95%;
-      margin: 0 auto;
-      padding: 0.75rem 1rem;
-    }
-    main {
-      font-size: 18px;
-      max-width: 80%;
-      width: 95%;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-    h1 {
-      margin-top: 0;
-      font-family:"Poppins", sans-serif;
-      font-weight: 400;
-    }
-    .header-disclaimer { 
-      margin-bottom: 0; 
-    }
-    .nav-buttons {
-      margin: 1rem 0;
-    }
-    .nav-buttons a {
-      display: inline-block;
-      margin-right: 1.5em;
-      padding: 0.5em 1em;
-      background-color: #2A1E5C;
-      color: white;
-      font-size: 18px;
-      line-height: 1.5;
-      font-weight: 400;
-      text-decoration: none;
-      border-radius: .5rem 0;
-    }
+    <head>
+        <meta charset="UTF-8" />
+        <title>Comparison Results | RestoredCDC.org</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='compare_feature/compare_style.css') }}"
+        />
+    </head>
+    <body>
+        {{ disclaimer | safe }}
 
-    #restoredCDC_banner {
-        position: sticky; 
-        top: 0; 
-        height: 55px; 
-        background: #f8f9fa; 
-        padding: 8px 12px; 
-        border-bottom: 2px solid #ddd; 
-        z-index: 1000; 
-        display: flex; 
-        align-items: center; 
-        justify-content: space-between; 
-        font-size: 0.85em; 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-        flex-wrap: nowrap
-    }
+        <header>
+            <div class="header-content">
+                <h1>RestoredCDC.org Comparison</h1>
+                <div class="nav-buttons">
+                    <a href="{{ pageURLs | last }}" target="_self"
+                        >&#8592; View on RestoredCDC.org</a
+                    >
+                    <a href="{{ pageURLs | first }}" target="_blank"
+                        >View on cdc.gov &#x2197;</a
+                    >
+                </div>
+            </div>
+        </header>
 
-    #text_block {
-        flex: 1; 
-        overflow: hidden; 
-        text-align: left; 
-        display: flex; 
-        align-items: center; 
-        padding-right: 35px
-    }
+        <main>
+            <div class="legend-container card-box">
+                <div class="url-display">
+                    <strong>Comparison timestamp:</strong> {{
+                    comparison_timestamp_utc }}
+                    <br />
+                    <strong>RestoredCDC URL:</strong>
+                    <a href="{{ pageURLs | last }}" target="_self"
+                        >{{ pageURLs | last }}</a
+                    >
+                    <br />
+                    <strong>Live cdc.gov URL &#x2197;:</strong>
+                    <a href="{{ pageURLs | first }}" target="_blank"
+                        >{{ pageURLs | first }}</a
+                    >
+                </div>
+                <div class="legend-boxes-group">
+                    <div class="legend-item">
+                        <div class="legend-box removed"></div>
+                        <span id="legend-removed-desc">Loading legend...</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box added"></div>
+                        <span id="legend-added-desc">Loading legend...</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box injected"></div>
+                        <span id="legend-injected-desc">
+                            <strong style="color: #8b4513">Injected:</strong>
+                            Line or disclaimer added by RestoredCDC.org.
+                        </span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box same"></div>
+                        <span id="legend-same-desc">Loading legend...</span>
+                    </div>
+                </div>
 
-    #disclaimer_text {
-        margin: 0; 
-        color: #555; 
-        max-height: 1.2em; 
-        overflow: hidden; 
-        white-space: nowrap; 
-        text-overflow: ellipsis;
-        transition: max-height 0.3s ease-out;
-        flex-grow: 1;
-    }
+                <div class="diff-options">
+                    <input
+                        type="checkbox"
+                        id="inlineHighlightToggle"
+                        name="inlineHighlightToggle"
+                        checked
+                    />
+                    <label for="inlineHighlightToggle"
+                        >Enable word-level highlighting (experimental)?</label
+                    >
+                </div>
+            </div>
+            {% if is_error %}
+            <div class="error-block card-box">
+                {% if error_msg1 %}
+                <h3>RestoredCDC URL Error:</h3>
+                <p>
+                    <strong>
+                        Url/page
+                        <i>may</i> not be part of the restoredcdc.org archive.
+                    </strong>
+                </p>
+                {{ error_msg1 }} {% endif %} {% if error_msg2 %}
+                <h3>Live cdc.gov URL Error:</h3>
+                <p>
+                    <strong>
+                        Url/page
+                        <i>may</i> have been removed from cdc.gov.
+                    </strong>
+                </p>
+                {{ error_msg2 }} {% endif %}
+                <p>
+                    <strong>Please check the URLs or try again later.</strong>
+                </p>
+            </div>
 
-    #disclaimer_text a {
-        color:#0056b3;
-        text-decoration: underline;
-    }
+            {% else %}
+            <div class="diff-container card-box">
+                <pre id="diff_result"></pre>
+            </div>
 
-    #toggle_disclaimer {
-        color: #0056b3; 
-        text-decoration: 
-        underline; cursor:pointer; 
-        margin-left: 10px;
-    }
+            <div class="legend-container card-box">
+                <div
+                    class="legend-item"
+                    style="margin-top: 8px; color: #555; line-height: 1.3"
+                >
+                    <em
+                        >Note: Comparison ignores leading/trailing whitespace
+                        and certain script/tracking codes. Word-level
+                        highlighting (optional above) only applies to changed
+                        lines.</em
+                    >
+                </div>
+            </div>
+            <script id="original-lines-a" type="application/json">
+                {{ lines_orig_A_json | safe }}
+            </script>
+            <script id="original-lines-b" type="application/json">
+                {{ lines_orig_B_json | safe }}
+            </script>
+            <script id="render-instructions" type="application/json">
+                {{ render_instructions_json | safe }}
+            </script>
 
-    #disclaimer_buttons {
-        display: flex; 
-        gap: 5px; 
-        flex-wrap: nowrap; 
-        align-items: center;
-    }
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
+            <script src="{{ url_for('static', filename='compare_feature/compare_render.js') }}"></script>
 
-    #disclaimer_buttons a {
-        padding: 6px 12px; 
-        font-weight: bold; 
-        background: #FEAE00; 
-        color: black; 
-        text-decoration: none; 
-        border-radius: 5px; 
-        font-size: 0.8em; 
-        white-space: nowrap;
-    }
-    .navbar-on-scroll {
-        padding: 70px 9px 0px 9px;
-        z-index: 300;
-    }
-
-    .legend-container {
-        background: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	max-width: 350px;
-        text-align: left;
-    }
-    .legend-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        border-bottom: 2px solid #ddd;
-        padding-bottom: 5px;
-    }
-    .legend-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-    .legend-box {
-        width: 20px;
-        height: 20px;
-        border-radius: 4px;
-        margin-right: 10px;
-    }
-    .removed {
-        background-color: #fadad7;
-        border: 1px solid #b30000;
-    }
-    .added {
-        background-color: #eaf2c2;
-        border: 1px solid #406619;
-    }
-    .same {
-        background-color: #ddd;
-        border: 1px solid #888;
-    }
-
-  @media (max-width: 600px) {
-    #restoredCDC_banner {
-      display: block;
-      padding: 10px;
-    }
-    #disclaimer_buttons {
-      justify-content: center;
-      width: 100%;
-      margin-top: 8px;
-      display: flex;
-    }
-    #disclaimer_buttons a {
-      flex: 1; /* Makes buttons full width on mobile */
-      text-align: center;
-      max-width: 120px; /* Ensures buttons remain uniform */
-    }
-  }
-    #diff-col {
-      font-family: "Nunito",sans-serif;
-      font-size: 15px;
-      line-height: 1.5;
-      white-space: normal;
-      padding: 0.5rem;
-      background: #f9f9f9;
-    }
-  </style>
-</head>
-  <div class="header-disclaimer">
-    {{ disclaimer|safe }}
-  </div>
-
-  <header>
-    <div class="header-content">
-      <h1>RestoredCDC.org Comparison</h1>
-      <div class="nav-buttons">
-	<a href="{{ pageURLs |last }}" target="_self">
-          &#8592; View on RestoredCDC.org
-        </a>
-	<a href="{{ pageURLs |first }}" target="_blank">
-          View on cdc.gov
-        </a>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <!-- Display the full URLs as clickable links -->
-    <p>
-      <strong>RestoredCDC.org URL:</strong>
-      <a href="{{ pageURLs | last }}" target="_self">
-	      {{ pageURLs | last }}
-      </a>
-      <br>
-      <strong>cdc.gov URL:</strong>
-      <a href="{{ pageURLs | first }}" target="_blank">
-	      {{ pageURLs | first }}
-      </a>
-    </p>
-    <hr>
-    <div class="legend-container">
-    <div class="legend-title">Legend</div>
-    <div class="legend-item">
-        <div class="legend-box removed"></div> 
-        <span>Removed: No longer exists on the CDC site.</span>
-    </div>
-    <div class="legend-item">
-        <div class="legend-box added"></div> 
-        <span>Added: Newly added to the CDC site.</span>
-    </div>
-    <div class="legend-item">
-        <div class="legend-box same"></div> 
-        <span>Regular: Unchanged text.</span>
-    </div>
-</div>
-
-    <hr>
-    <div id="diff-col">
-      {{ comparison_report | safe }}
-    </div>
-  </main>
-</body>
+            {% endif %}
+        </main>
+    </body>
 </html>

@@ -9,3 +9,4 @@
 *.js     text eol=lf
 Dockerfile text eol=lf
 *.dockerfile text eol=lf
+requirements.txt text eol=lf

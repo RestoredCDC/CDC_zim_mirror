@@ -3,6 +3,7 @@
 import argparse
 from typing import Optional
 
+from bs4 import BeautifulSoup, Tag
 import logging
 import re
 from urllib import parse
@@ -23,6 +24,12 @@ from whoosh.qparser import MultifieldParser, OrGroup
 # --- Comparison Feature Import ---
 # The core logic for fetching & diffing pages lives in this processor module now.
 from src.compare_feature.compare_processor import get_comparison_data
+
+# --- Constants to appease lord CodeQL ---
+# These are used to identify the CDC logo and favicon in HTML content.
+# They are used in regex patterns to replace these with local static assets.
+LOGO_KEYWORDS = {'cdc-logo', 'logo-notext', 'logo2'}
+ICON_KEYWORDS = {'favicon', 'apple-touch-icon', 'safari-pinned-tab'}
 
 # --- Argument Parsing ---
 # Standard setup for command-line args like host, port, db locations.
@@ -132,28 +139,83 @@ mobile_search_replace = """<form id="cdc-mobile-search-form" class="cdc-header-s
 
 def replace_logo(html: str, new_logo_url: str, new_favicon_url: str) -> str:
     """
-    Replaces known CDC logo/favicon URLs in HTML with paths to local static assets.
-    Uses url_for, so needs to be called within a request context ideally.
+    Replaces known CDC logo/favicon URLs in HTML with paths to local static assets,
+    using an HTML parser for safety and robustness.
     """
-    logo_pattern = (
-        r'(href|src)=(["\'])([^"\']*?(?:cdc-logo|logo-notext|logo2)[^"\']*)(["\'])'
-    )
-    icon_pattern = (
-        r'(["\'])([^"\']*?(?:favicon|apple-touch-icon|safari-pinned-tab)[^"\']*)(["\'])'
-    )
     try:
-        # Generate paths to our static images
+        # Generate paths to our static images (needs request context)
         new_logo_path = url_for("static", filename=f"images/{new_logo_url}")
         new_favicon_path = url_for("static", filename=f"images/{new_favicon_url}")
-        # Perform replacements using regex substitution
-        html = re.sub(logo_pattern, rf"\1=\2{new_logo_path}\4", html)
-        html = re.sub(icon_pattern, rf"\1{new_favicon_path}\3", html)
+
+        # Parse the HTML
+        # Using 'html.parser' is built-in, 'lxml' is faster if available/installed
+        soup = BeautifulSoup(html, 'html.parser')
+
+        # Find potentially relevant tags (add others like <source> if necessary)
+        tags_to_check = soup.find_all(['img', 'link'])
+
+        for tag in tags_to_check:
+            if isinstance(tag, Tag):
+                # Check 'src' attribute (primarily for <img>)
+                original_src = tag.get('src')
+                if original_src:
+                    # Check if any logo keyword is in the src
+                    if any(keyword in original_src for keyword in LOGO_KEYWORDS):
+                        tag['src'] = new_logo_path
+                        # Use app.logger if available, otherwise standard logging or print
+                        try:
+                            app.logger.debug(f"Replaced src='{original_src}' with '{new_logo_path}'")
+                        except NameError: # If app.logger not directly accessible here
+                            logging.debug(f"Replaced src='{original_src}' with '{new_logo_path}'")
+
+
+                # Check 'href' attribute (primarily for <link>)
+                original_href = tag.get('href')
+                if original_href:
+                    # Check for logo keywords first
+                    if any(keyword in original_href for keyword in LOGO_KEYWORDS):
+                        tag['href'] = new_logo_path
+                        try:
+                            app.logger.debug(f"Replaced href='{original_href}' with '{new_logo_path}'")
+                        except NameError:
+                            logging.debug(f"Replaced href='{original_href}' with '{new_logo_path}'")
+                    # Else, check for icon keywords (avoid overwriting logo replacement)
+                    elif any(keyword in original_href for keyword in ICON_KEYWORDS):
+                        tag['href'] = new_favicon_path
+                        try:
+                            app.logger.debug(f"Replaced href='{original_href}' with '{new_favicon_path}'")
+                        except NameError:
+                             logging.debug(f"Replaced href='{original_href}' with '{new_favicon_path}'")
+        else:
+            # Log if a non-Tag element was somehow found (unlikely here)
+            try:
+                app.logger.warning(f"Skipping unexpected element type found by find_all: {type(tag)}")
+            except NameError:
+                logging.warning(f"Skipping unexpected element type found by find_all: {type(tag)}")
+
+        # Return the modified HTML as a string
+        return str(soup)
+
     except RuntimeError:
         # url_for needs an active request context. Log if called without one.
-        app.logger.warning(
-            "Could not generate static URLs for logo replacement outside request context."
-        )
-    return html
+        # Use app.logger if available, otherwise standard logging or print
+        try:
+            app.logger.warning(
+                "Could not generate static URLs for logo replacement outside request context."
+            )
+        except NameError:
+             logging.warning(
+                "Could not generate static URLs for logo replacement outside request context."
+             )
+        return html # Return original HTML if context fails
+    except Exception as e:
+        # Catch potential parsing errors or other issues
+        # Use app.logger if available, otherwise standard logging or print
+        try:
+            app.logger.error(f"Error during HTML parsing/modification in replace_logo: {e}", exc_info=True)
+        except NameError:
+            logging.error(f"Error during HTML parsing/modification in replace_logo: {e}", exc_info=True)
+        return html # Return original HTML on error
 
 
 # Whoosh Search Helpers (Keep as is)

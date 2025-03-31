@@ -10,6 +10,7 @@ gevent==24.11.1
 greenlet==3.1.1
 idna==3.10
 iniconfig==2.0.0
+inscriptis==2.6.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 joblib==1.4.2

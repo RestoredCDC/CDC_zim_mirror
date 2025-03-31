@@ -1,0 +1,523 @@
+/* static/compare_style.css */
+
+/* Diff View Specific Styles */
+/* Applied via compare_render.js */
+
+/* Style the PRE container holding the diff lines */
+pre#diff_result {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    padding: 0;
+    font-family: inherit;
+    font-size: 0.95em;
+    line-height: 1.35;
+    text-align: left;
+}
+
+/* Style the DIVs holding each line */
+#diff_result div.diff-line {
+    margin: 0;
+    padding: 0 5px;
+    min-height: 1.35em;
+    border-left: 3px solid transparent; /* May need override in HC */
+}
+
+/* Base style for the INNER content spans/ins/del */
+#diff_result div.diff-line > span,
+#diff_result div.diff-line > ins,
+#diff_result div.diff-line > del {
+    display: inline;
+    margin: 0;
+    padding: 1px 2px;
+    text-decoration: none;
+    vertical-align: baseline;
+    border-radius: 2px;
+}
+
+/* --- Default Theme Colors --- */
+
+/* Background colors applied to OUTER spans/tags */
+#diff_result span.line-added,
+#diff_result ins {
+    background-color: #f6f9ec; /* Default: Light green background */
+}
+#diff_result span.line-removed,
+#diff_result del {
+    background-color: #faf0ef; /* Default: Light red background */
+}
+#diff_result span.line-injected {
+    background-color: #fffce6 !important; /* Default: Lemon Chiffon */
+}
+#diff_result span.line-unchanged {
+    background: none;
+}
+
+/* Text Color/Style applied to INNER spans */
+#diff_result .text-unchanged,
+#diff_result .word-common {
+    color: #333; /* Default: Dark Grey */
+    background: none;
+    font-weight: normal;
+}
+
+/* Added text (inside added lines OR added words in replaced lines) */
+#diff_result .text-added {
+    color: #009900; /* Default: Dark green text */
+    background: none;
+}
+#diff_result .word-added {
+    color: #009900; /* Default: Dark green text */
+    background: none;
+    font-weight: normal;
+}
+
+/* Removed text (inside removed lines OR removed words in replaced lines) */
+#diff_result .text-removed,
+#diff_result .word-removed {
+    color: #ee0000; /* Default: Dark red text */
+    background: none;
+    font-weight: normal;
+}
+
+/* Specific styling for text within injected lines */
+#diff_result span.line-injected > .text-unchanged, /* Target inner span */
+#diff_result span.line-injected > span {
+    /* Allow for nested spans if any */
+    color: #8b4513 !important; /* Default: Darker text (SaddleBrown) */
+    background: none;
+}
+
+/* Ensure semantic tags added by JS don't add unwanted default styles */
+#diff_result ins,
+#diff_result del {
+    text-decoration: none;
+    display: inline;
+    color: inherit; /* Inherit color from inner text-* class */
+}
+
+/* ================================================== */
+/* == General Page & Layout Styles                 == */
+/* ================================================== */
+
+/* Root element - define CSS variables */
+:root {
+    /* Define High Contrast color variables here */
+    /* NOTE: These values MUST be verified with contrast checker tools (WCAG AA/AAA). */
+    --hc-common-text-on-dark: #ffffff; /* White for common text on dark HC backgrounds */
+    --hc-unchanged-text: #1a1a1a; /* Near Black for base text */
+    --hc-added-text: #99ddff; /* Example: Light Cyan */
+    --hc-added-bg: #002040; /* Example: Very Dark Blue */
+    --hc-removed-text: #ffcc99; /* Example: Light Orange */
+    --hc-removed-bg: #331a00; /* Example: Very Dark Brown */
+    --hc-injected-text: #d0d0d0; /* Example: Light Grey */
+    --hc-injected-bg: #2c2c2c; /* Example: Dark Grey */
+}
+
+body {
+    font-family: "Nunito", sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+    background-color: #f0f2f5;
+    color: #333; /* Default text color */
+}
+header {
+    background: linear-gradient(90deg, #0057b7 0%, #0081a1 100%);
+    color: #fff;
+}
+.header-content {
+    max-width: 85%;
+    width: 95%;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+}
+main {
+    font-size: 17px;
+    max-width: 85%;
+    width: 95%;
+    margin: 0 auto;
+    padding: 1rem;
+}
+h1 {
+    margin-top: 0;
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-size: 1.8em;
+}
+.header-disclaimer {
+    margin-bottom: 0;
+}
+.nav-buttons {
+    margin: 1rem 0;
+}
+.nav-buttons a {
+    display: inline-block;
+    margin-right: 1em;
+    padding: 0.6em 1.2em;
+    background-color: #2a1e5c;
+    color: white;
+    font-size: 1em;
+    line-height: 1.4;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 0.3rem;
+    transition: background-color 0.2s ease;
+}
+.nav-buttons a:hover {
+    background-color: #4a3a8c;
+}
+/* Banner Styles */
+#restoredCDC_banner {
+    position: sticky;
+    top: 0;
+    height: 55px;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-bottom: 2px solid #ddd;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    flex-wrap: nowrap;
+}
+#text_block {
+    flex: 1;
+    overflow: hidden;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    padding-right: 15px;
+}
+#disclaimer_text {
+    margin: 0;
+    color: #555;
+    max-height: 1.2em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: max-height 0.3s ease-out;
+    flex-grow: 1;
+}
+#disclaimer_text a {
+    color: #0056b3;
+    text-decoration: underline;
+}
+#toggle_disclaimer {
+    color: #0056b3;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+#disclaimer_buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+#disclaimer_buttons a {
+    padding: 5px 10px;
+    font-weight: bold;
+    background: #feae00;
+    color: black;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+#disclaimer_buttons a:hover {
+    background-color: #e59d00;
+}
+/* Card Styling Base */
+.card-box {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+/* Legend Styles */
+.legend-container {
+    /* Uses card-box */
+}
+.legend-boxes-group {
+    padding-bottom: 1px;
+    margin-bottom: 1px;
+} /* Space below legend boxes */
+.legend-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 3px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+.legend-item span strong {
+    margin-right: 0.4em;
+}
+.legend-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    margin-right: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+    margin-top: 0.15em;
+}
+.legend-box.removed {
+    background-color: #faf0ef; /* Default light red */
+}
+.legend-box.added {
+    background-color: #f6f9ec; /* Default light green */
+}
+.legend-box.same {
+    background-color: #f0f0f0;
+    border-color: #ccc;
+}
+.legend-box.injected {
+    background-color: #fffce6; /* Default light yellow */
+    border-color: #e6db7a;
+}
+/* Timestamp display */
+.timestamp-display {
+    font-size: 0.8em;
+    color: #555;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+    text-align: right;
+}
+/* URL Display */
+.url-display {
+    font-size: 0.85em;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    line-height: 1.4;
+    color: #333;
+}
+.url-display strong {
+    display: inline;
+    font-weight: 600;
+    color: #000;
+}
+.url-display a {
+    word-break: break-all;
+    color: #0056b3;
+    text-decoration: none;
+}
+.url-display a:hover {
+    text-decoration: underline;
+}
+/* Toggle Options - Updated for Layout */
+.diff-options {
+    font-size: 0.85em;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    color: #333;
+    /* Flexbox for layout */
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens if needed */
+    justify-content: space-between; /* Push groups to edges */
+    align-items: center;
+    gap: 10px; /* Gap between items if they wrap */
+}
+/* Style individual groups if needed, e.g., prevent breaking */
+.diff-option-group {
+    display: inline-flex; /* Keep label and checkbox together */
+    align-items: center;
+}
+.diff-options label {
+    cursor: pointer;
+    margin-left: 3px; /* Space between checkbox and label */
+}
+.diff-options input[type="checkbox"] {
+    vertical-align: middle; /* Align checkbox with text */
+}
+
+/* Diff Container */
+.diff-container {
+    overflow-x: auto;
+}
+.diff-container pre#diff_result {
+    background: none;
+    border: none;
+    padding: 0;
+}
+/* Mobile */
+@media (max-width: 768px) {
+    #restoredCDC_banner {
+        display: block;
+        padding: 10px;
+        height: auto;
+    }
+    #text_block {
+        padding-right: 0;
+        margin-bottom: 8px;
+    }
+    #disclaimer_buttons {
+        justify-content: center;
+        width: 100%;
+        margin-top: 8px;
+        display: flex;
+    }
+    #disclaimer_buttons a {
+        flex: 1;
+        text-align: center;
+        max-width: 120px;
+    }
+    main {
+        max-width: 95%;
+        width: 100%;
+        font-size: 15px;
+    }
+    h1 {
+        font-size: 1.5em;
+    }
+    .nav-buttons a {
+        font-size: 0.9em;
+        padding: 0.5em 1em;
+    }
+    .card-box {
+        padding: 10px 15px;
+    }
+    .legend-item {
+        font-size: 0.85em;
+        margin-bottom: 3px;
+    }
+    .legend-box {
+        width: 14px;
+        height: 14px;
+        margin-right: 6px;
+    }
+    .timestamp-display {
+        font-size: 0.75em;
+        text-align: left;
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+    }
+    .url-display {
+        font-size: 0.8em;
+    }
+    .diff-options {
+        font-size: 0.8em;
+        /* Stack toggles vertically on mobile */
+        flex-direction: column;
+        align-items: flex-start; /* Align items left */
+        justify-content: flex-start; /* Remove space-between */
+        gap: 8px;
+    }
+}
+/* Errors */
+.error-block {
+    padding: 1em;
+    border: 1px solid #d9534f;
+    background-color: #f2dede;
+    color: #a94442;
+    border-radius: 4px;
+    margin-top: 1em;
+}
+.error-block h2 {
+    margin-top: 0;
+    color: #a94442;
+    border-bottom-color: #e4b9b9;
+}
+.error-block p {
+    margin-bottom: 0.5em;
+}
+
+/* ================================================== */
+/* == High Contrast Mode Styles                    == */
+/* ================================================== */
+/* These rules apply only when the body tag has the */
+/* 'high-contrast-mode' class added via JavaScript. */
+
+/* Ensure common text within word-diff sections is readable on dark HC backgrounds */
+.high-contrast-mode #diff_result span.line-added > span.word-common,
+.high-contrast-mode #diff_result span.line-removed > span.word-common,
+.high-contrast-mode #diff_result span.line-added > span.text-unchanged,
+.high-contrast-mode #diff_result span.line-removed > span.text-unchanged {
+    color: var(--hc-common-text-on-dark, #ffffff); /* Use variable, fallback to white */
+    background: none; /* Ensure no accidental background */
+}
+
+/* Base text color in high contrast mode */
+.high-contrast-mode body {
+    color: var(--hc-unchanged-text, #1a1a1a);
+}
+
+.high-contrast-mode #diff_result .text-unchanged,
+.high-contrast-mode #diff_result .word-common {
+    color: var(--hc-unchanged-text, #1a1a1a);
+    background: none; /* Ensure no background */
+}
+
+/* Override Backgrounds */
+.high-contrast-mode #diff_result span.line-added,
+.high-contrast-mode #diff_result ins {
+    background-color: var(--hc-added-bg, #002040); /* Use var with fallback */
+}
+.high-contrast-mode #diff_result span.line-removed,
+.high-contrast-mode #diff_result del {
+    background-color: var(--hc-removed-bg, #331a00);
+}
+.high-contrast-mode #diff_result span.line-injected {
+    background-color: var(
+        --hc-injected-bg,
+        #2c2c2c
+    ) !important; /* Override default important */
+}
+
+/* Override Text Colors */
+.high-contrast-mode #diff_result .text-added,
+.high-contrast-mode #diff_result .word-added {
+    color: var(--hc-added-text, #99ddff);
+    background: none; /* Ensure no background inherited */
+}
+.high-contrast-mode #diff_result .text-removed,
+.high-contrast-mode #diff_result .word-removed {
+    color: var(--hc-removed-text, #ffcc99);
+    background: none;
+}
+
+/* Override Injected Text Color */
+.high-contrast-mode #diff_result span.line-injected > .text-unchanged,
+.high-contrast-mode #diff_result span.line-injected > span {
+    color: var(
+        --hc-injected-text,
+        #d0d0d0
+    ) !important; /* Override default important */
+    background: none;
+}
+
+/* Override Legend Boxes */
+.high-contrast-mode .legend-box.added {
+    background-color: var(--hc-added-bg, #002040);
+    border: 1px solid var(--hc-added-text, #99ddff); /* Use text color for border */
+}
+.high-contrast-mode .legend-box.removed {
+    background-color: var(--hc-removed-bg, #331a00);
+    border: 1px solid var(--hc-removed-text, #ffcc99);
+}
+.high-contrast-mode .legend-box.injected {
+    background-color: var(--hc-injected-bg, #2c2c2c);
+    border: 1px solid var(--hc-injected-text, #d0d0d0);
+}
+.high-contrast-mode .legend-box.same {
+    /* Ensure 'same' box is visible - e.g., white on dark grey? */
+    background-color: #ffffff; /* white bg */
+    border: 1px solid var(--hc-unchanged-text, #1a1a1a); /* dark border */
+}
+
+/* Adjust other elements if needed for HC readability */
+/* e.g. links inside the diff might need explicit color */
+/* .high-contrast-mode a { color: #add8e6; } */
+
+/* End of High Contrast Mode Styles */
+
+/* End of file */

@@ -38,14 +38,14 @@ pre#diff_result {
 /* Background colors applied to OUTER spans/tags */
 #diff_result span.line-added,
 #diff_result ins {
-    background-color: #eaf2c2; /* Light green background */
+    background-color: #f6f9ec; /* Light green background */
 }
 #diff_result span.line-removed,
 #diff_result del {
-    background-color: #fadad7; /* Light red background */
+    background-color: #faf0ef; /* Light red background */
 }
 #diff_result span.line-injected {
-    background-color: #fffacd !important; /* Lemon Chiffon */
+    background-color: #fffce6 !important; /* Lemon Chiffon */
 }
 #diff_result span.line-unchanged {
     background: none;
@@ -62,12 +62,12 @@ pre#diff_result {
 /* Added text (inside added lines OR added words in replaced lines) */
 #diff_result .text-added {
     /* For simple added lines */
-    color: #188a00; /* Dark green text */
+    color: #009900; /* Dark green text */
     background: none;
 }
 #diff_result .word-added {
     /* For added words in replaced lines (word-diff only) */
-    color: #188a00; /* Dark green text */
+    color: #009900; /* Dark green text */
     background: none;
     font-weight: normal;
 }
@@ -75,7 +75,7 @@ pre#diff_result {
 /* Removed text (inside removed lines OR removed words in replaced lines) */
 #diff_result .text-removed,
 #diff_result .word-removed {
-    color: #c30000; /* Dark red text */
+    color: #ee0000; /* Dark red text */
     background: none;
     font-weight: normal;
 }
@@ -253,17 +253,17 @@ h1 {
     margin-top: 0.15em;
 }
 .legend-box.removed {
-    background-color: #fadad7;
+    background-color: #faf0ef;
 }
 .legend-box.added {
-    background-color: #eaf2c2;
+    background-color: #f6f9ec;
 }
 .legend-box.same {
     background-color: #f0f0f0;
     border-color: #ccc;
 }
 .legend-box.injected {
-    background-color: #fffacd;
+    background-color: #fffce6;
     border-color: #e6db7a;
 }
 /* Timestamp display */

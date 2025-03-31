@@ -170,8 +170,8 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
         // Colors defined in CSS/HTML styles
-        const removedColor = "#c30000";
-        const addedColor = "#188a00";
+        const removedColor = "#ee0000";
+        const addedColor = "#009900";
         const sameColor = "#333";
 
         // Use innerHTML to include the strong tag for the colored label part

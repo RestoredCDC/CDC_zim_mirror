@@ -140,6 +140,7 @@
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
             <script src="{{ url_for('static', filename='compare_feature/compare_render.js') }}"></script>
 
+            {{ banner_script | safe }}
             {% endif %}
         </main>
     </body>

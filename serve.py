@@ -8,7 +8,7 @@ import re
 from urllib import parse
 from urllib.parse import urlparse
 import json  # For rendering JSON in template
-from flask import Flask, Response, jsonify, redirect, render_template, request, url_for
+from flask import Flask, Response, redirect, render_template, request, url_for
 from markupsafe import Markup  # For safely rendering JSON/HTML in template
 from waitress import serve
 
@@ -18,7 +18,7 @@ import plyvel
 # Search Feature imports
 from whoosh import sorting, scoring
 from whoosh.index import open_dir
-from whoosh.qparser import MultifieldParser, OrGroup, QueryParser
+from whoosh.qparser import MultifieldParser, OrGroup
 
 # --- Comparison Feature Import ---
 # The core logic for fetching & diffing pages lives in this processor module now.
@@ -410,6 +410,7 @@ def compare():
         comparison_timestamp_utc=comparison_data.get("comparison_timestamp_utc"),
         disclaimer=Markup(final_disclaimer),
         pageURLs=pageURLs,
+        banner_script=Markup(BANNER_SCRIPT),
     )
 
 

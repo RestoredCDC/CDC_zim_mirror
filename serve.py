@@ -500,8 +500,8 @@ def cdc_search_redirect():
     # and potentially by original desktop/sticky forms).
     # Fall back to 'query' (used by the original mobile form and maybe others).
     user_query = request.args.get("q")
-    if user_query is None: # If 'q' is not present, try 'query'
-        user_query = request.args.get("query", "") # Default to empty if neither exists
+    if user_query is None:  # If 'q' is not present, try 'query'
+        user_query = request.args.get("query", "")  # Default to empty if neither exists
     sanitized_q = user_query.replace("\\", "")  # Basic sanitization
     parsed = urlparse(sanitized_q)
     # Prevent open redirect by checking for scheme/host in the query param

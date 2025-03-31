@@ -74,15 +74,28 @@
                 </div>
 
                 <div class="diff-options">
-                    <input
-                        type="checkbox"
-                        id="inlineHighlightToggle"
-                        name="inlineHighlightToggle"
-                        checked
-                    />
-                    <label for="inlineHighlightToggle"
-                        >Enable word-level highlighting (experimental)?</label
-                    >
+                    <span class="diff-option-group">
+                        <input
+                            type="checkbox"
+                            id="inlineHighlightToggle"
+                            name="inlineHighlightToggle"
+                            checked
+                        />
+                        <label for="inlineHighlightToggle"
+                            >Enable word-level highlighting
+                            (experimental)?</label
+                        >
+                    </span>
+                    <span class="diff-option-group">
+                        <input
+                            type="checkbox"
+                            id="highContrastToggle"
+                            name="highContrastToggle"
+                        />
+                        <label for="highContrastToggle"
+                            >High contrast mode</label
+                        >
+                    </span>
                 </div>
             </div>
             {% if is_error %}
@@ -140,8 +153,7 @@
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
             <script src="{{ url_for('static', filename='compare_feature/compare_render.js') }}"></script>
 
-            {{ banner_script | safe }}
-            {% endif %}
+            {{ banner_script | safe }} {% endif %}
         </main>
     </body>
 </html>

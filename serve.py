@@ -309,11 +309,13 @@ def lookup(subpath: str):
             this_host = request.host_url.strip("/")
             this_full_url = f"{this_host}/{full_path}"
             cdc_base_url = "https://www.cdc.gov"
-            cdc_path = (
-                full_path.replace("www.cdc.gov/", "", 1)
-                if full_path.startswith("www.cdc.gov/")
-                else full_path
-            )
+            prefix_to_strip = "www.cdc.gov/"
+            if full_path.startswith(prefix_to_strip):
+                # Remove prefix using slicing for clarity and robustness
+                cdc_path = full_path[len(prefix_to_strip):]
+            else:
+                # Use the path as-is if it doesn't have the prefix
+                cdc_path = full_path
             cdc_full_url = f"{cdc_base_url}/{cdc_path}"
             current_disclaimer = (
                 DISCLAIMER_HTML.replace("$NAME", full_path)

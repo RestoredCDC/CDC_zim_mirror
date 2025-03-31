@@ -8,7 +8,7 @@ Designed to be called concurrently.
 
 import logging
 import os
-from typing import List, Set
+from typing import List, Set, Literal
 
 from inscriptis import get_text
 from playwright.sync_api import (
@@ -36,8 +36,10 @@ PLAYWRIGHT_TIMEOUT: int = int(
 NETWORK_IDLE_TIMEOUT: int = int(
     os.environ.get("PW_IDLE_TIMEOUT", 3000)
 )  # Max time to wait for network quiet after load (3s)
-PAGE_LOAD_WAIT_UNTIL: str = (
-    "load"  # Default 'load' event seems reliable enough for initial nav success
+# Define the allowed type explicitly for page load states
+PageLoadState = Literal['commit', 'domcontentloaded', 'load', 'networkidle']
+PAGE_LOAD_WAIT_UNTIL: PageLoadState = (
+    "load"  # Default 'load' - now type-checked against the Literal
 )
 
 # Resource Blocking Settings - Skip common cruft for faster loads

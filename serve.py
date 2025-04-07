@@ -28,8 +28,8 @@ from src.compare_feature.compare_processor import get_comparison_data
 # --- Constants to appease lord CodeQL ---
 # These are used to identify the CDC logo and favicon in HTML content.
 # They are used in regex patterns to replace these with local static assets.
-LOGO_KEYWORDS = {'cdc-logo', 'logo-notext', 'logo2'}
-ICON_KEYWORDS = {'favicon', 'apple-touch-icon', 'safari-pinned-tab'}
+LOGO_KEYWORDS = {"cdc-logo", "logo-notext", "logo2"}
+ICON_KEYWORDS = {"favicon", "apple-touch-icon", "safari-pinned-tab"}
 
 # --- Argument Parsing ---
 # Standard setup for command-line args like host, port, db locations.
@@ -149,49 +149,64 @@ def replace_logo(html: str, new_logo_url: str, new_favicon_url: str) -> str:
 
         # Parse the HTML
         # Using 'html.parser' is built-in, 'lxml' is faster if available/installed
-        soup = BeautifulSoup(html, 'html.parser')
+        soup = BeautifulSoup(html, "html.parser")
 
         # Find potentially relevant tags (add others like <source> if necessary)
-        tags_to_check = soup.find_all(['img', 'link'])
+        tags_to_check = soup.find_all(["img", "link"])
 
         for tag in tags_to_check:
             if isinstance(tag, Tag):
                 # Check 'src' attribute (primarily for <img>)
-                original_src = tag.get('src')
+                original_src = tag.get("src")
                 if original_src:
                     # Check if any logo keyword is in the src
                     if any(keyword in original_src for keyword in LOGO_KEYWORDS):
-                        tag['src'] = new_logo_path
+                        tag["src"] = new_logo_path
                         # Use app.logger if available, otherwise standard logging or print
                         try:
-                            app.logger.debug(f"Replaced src='{original_src}' with '{new_logo_path}'")
-                        except NameError: # If app.logger not directly accessible here
-                            logging.debug(f"Replaced src='{original_src}' with '{new_logo_path}'")
-
+                            app.logger.debug(
+                                f"Replaced src='{original_src}' with '{new_logo_path}'"
+                            )
+                        except NameError:  # If app.logger not directly accessible here
+                            logging.debug(
+                                f"Replaced src='{original_src}' with '{new_logo_path}'"
+                            )
 
                 # Check 'href' attribute (primarily for <link>)
-                original_href = tag.get('href')
+                original_href = tag.get("href")
                 if original_href:
                     # Check for logo keywords first
                     if any(keyword in original_href for keyword in LOGO_KEYWORDS):
-                        tag['href'] = new_logo_path
+                        tag["href"] = new_logo_path
                         try:
-                            app.logger.debug(f"Replaced href='{original_href}' with '{new_logo_path}'")
+                            app.logger.debug(
+                                f"Replaced href='{original_href}' with '{new_logo_path}'"
+                            )
                         except NameError:
-                            logging.debug(f"Replaced href='{original_href}' with '{new_logo_path}'")
+                            logging.debug(
+                                f"Replaced href='{original_href}' with '{new_logo_path}'"
+                            )
                     # Else, check for icon keywords (avoid overwriting logo replacement)
                     elif any(keyword in original_href for keyword in ICON_KEYWORDS):
-                        tag['href'] = new_favicon_path
+                        tag["href"] = new_favicon_path
                         try:
-                            app.logger.debug(f"Replaced href='{original_href}' with '{new_favicon_path}'")
+                            app.logger.debug(
+                                f"Replaced href='{original_href}' with '{new_favicon_path}'"
+                            )
                         except NameError:
-                             logging.debug(f"Replaced href='{original_href}' with '{new_favicon_path}'")
+                            logging.debug(
+                                f"Replaced href='{original_href}' with '{new_favicon_path}'"
+                            )
         else:
             # Log if a non-Tag element was somehow found (unlikely here)
             try:
-                app.logger.warning(f"Skipping unexpected element type found by find_all: {type(tag)}")
+                app.logger.warning(
+                    f"Skipping unexpected element type found by find_all: {type(tag)}"
+                )
             except NameError:
-                logging.warning(f"Skipping unexpected element type found by find_all: {type(tag)}")
+                logging.warning(
+                    f"Skipping unexpected element type found by find_all: {type(tag)}"
+                )
 
         # Return the modified HTML as a string
         return str(soup)
@@ -204,18 +219,24 @@ def replace_logo(html: str, new_logo_url: str, new_favicon_url: str) -> str:
                 "Could not generate static URLs for logo replacement outside request context."
             )
         except NameError:
-             logging.warning(
+            logging.warning(
                 "Could not generate static URLs for logo replacement outside request context."
-             )
-        return html # Return original HTML if context fails
+            )
+        return html  # Return original HTML if context fails
     except Exception as e:
         # Catch potential parsing errors or other issues
         # Use app.logger if available, otherwise standard logging or print
         try:
-            app.logger.error(f"Error during HTML parsing/modification in replace_logo: {e}", exc_info=True)
+            app.logger.error(
+                f"Error during HTML parsing/modification in replace_logo: {e}",
+                exc_info=True,
+            )
         except NameError:
-            logging.error(f"Error during HTML parsing/modification in replace_logo: {e}", exc_info=True)
-        return html # Return original HTML on error
+            logging.error(
+                f"Error during HTML parsing/modification in replace_logo: {e}",
+                exc_info=True,
+            )
+        return html  # Return original HTML on error
 
 
 # Whoosh Search Helpers (Keep as is)
@@ -312,7 +333,7 @@ def lookup(subpath: str):
             prefix_to_strip = "www.cdc.gov/"
             if full_path.startswith(prefix_to_strip):
                 # Remove prefix using slicing for clarity and robustness
-                cdc_path = full_path[len(prefix_to_strip):]
+                cdc_path = full_path[len(prefix_to_strip) :]
             else:
                 # Use the path as-is if it doesn't have the prefix
                 cdc_path = full_path
@@ -554,6 +575,8 @@ def search_route():
         sortby=sortby,
         disclaimer=Markup(final_disclaimer),
         notice=notice,
+        style_override=STYLE_OVERRIDE,
+        banner_script=Markup(BANNER_SCRIPT),
     )
 
 
